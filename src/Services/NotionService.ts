@@ -5,11 +5,11 @@ import type {
   QueryDatabaseParameters,
 } from "@notionhq/client/build/src/api-endpoints";
 
-interface Identificable {
+export interface Identificable {
   id: string;
 }
 
-type AllowUndefined<T> = {
+export type AllowUndefined<T> = {
   [k in keyof T]?: T[k];
 };
 
@@ -20,7 +20,9 @@ export type AttributesOnFilter<Model> = {
 };
 
 export type Page = PageObjectResponse | PartialPageObjectResponse;
+
 export type Filter = QueryDatabaseParameters["filter"];
+
 export type Properties = PageObjectResponse["properties"];
 
 export abstract class NotionService<T> {

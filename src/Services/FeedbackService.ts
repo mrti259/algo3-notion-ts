@@ -1,6 +1,7 @@
 import { NotionService } from "./NotionService";
 import type {
   AttributesOnFilter,
+  AllowUndefined,
   Filter,
   Model,
   Page,
@@ -119,24 +120,11 @@ export class FeedbackService extends NotionService<Feedback> {
     return await this.delete(feedbacks);
   }
 
-  async createFeedbacks(
-    feedbacks: {
-      group_name?: string;
-      exercise_id?: string;
-      teacher_id?: string;
-    }[]
-  ) {
+  async createFeedbacks(feedbacks: AllowUndefined<Feedback>[]) {
     return await this.create(feedbacks);
   }
 
-  async updateFeedbacks(
-    feedbacks: {
-      id: string;
-      group_name?: string;
-      exercise_id?: string;
-      teacher_id?: string;
-    }[]
-  ) {
+  async updateFeedbacks(feedbacks: Model<Feedback>[]) {
     return await this.update(feedbacks);
   }
 }
