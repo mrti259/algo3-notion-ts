@@ -1,7 +1,7 @@
 import { default as assert } from "assert";
 import { default as baretest } from "baretest";
 import { config } from "dotenv";
-import { NotionContext } from "../../src/Services/NotionServiceContext";
+import { ServiceContext } from "../../src/Services/ServiceContext";
 
 const test = baretest("MyApp");
 
@@ -18,7 +18,7 @@ test("Import .env", function () {
   assert(!!feedback_db, "feedback_db should be defined");
 });
 
-const context = new NotionContext({
+const context = new ServiceContext({
   notion_auth: notion_auth,
   exercise_db,
   teachers_db,

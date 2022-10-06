@@ -3,7 +3,7 @@ import { ExerciseService } from "./ExerciseService";
 import { FeedbackService } from "./FeedbackService";
 import { TeacherService } from "./TeacherService";
 
-export class NotionContext {
+export class ServiceContext {
   exercises: ExerciseService;
   teachers: TeacherService;
   feedbacks: FeedbackService;

@@ -1,1 +1,1 @@
-export { NotionContext } from "./NotionServiceContext";
+export { ServiceContext } from "./ServiceContext";
