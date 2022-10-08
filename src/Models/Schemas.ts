@@ -2,7 +2,7 @@ import { Schema } from "./NotionRepository";
 import type {
   AttributesOnFilter,
   Filter,
-  Model,
+  Identificable,
   Page,
   Properties,
 } from "./NotionRepository";
@@ -28,17 +28,21 @@ export const ExerciseSchema = new (class extends Schema<Exercise> {
 
     return { and: filters } as Filter;
   }
-  mapProperties(model: Model<Exercise>): Properties {
+  mapProperties(model: Identificable<Exercise>): Properties {
     return {};
   }
-  mapPage(page: Page): Model<Exercise> {
-    return { id: page.id.replace(/-/g, "") };
+  mapPage(page: Page): Identificable<Exercise> {
+    const properties = (page as any).properties;
+    const exercise_name = properties["Nombre"].title.reduce(
+      (str: string, text: any) => str + text.plain_text,
+      ""
+    );
+    return { id: page.id.replace(/-/g, ""), exercise_name };
   }
 })();
 
 export interface Teacher {
   teacher_name: string;
-  user_id: string;
 }
 
 export const TeacherSchema = new (class extends Schema<Teacher> {
@@ -59,19 +63,18 @@ export const TeacherSchema = new (class extends Schema<Teacher> {
     return { and: filters } as Filter;
   }
 
-  mapProperties(model: Model<Teacher>): Properties {
+  mapProperties(model: Identificable<Teacher>): Properties {
     return {};
   }
 
-  mapPage(page: Page): Model<Teacher> {
+  mapPage(page: Page): Identificable<Teacher> {
     const id = page.id.replace(/-/g, "");
     const properties = (page as any).properties;
     const teacher_name = properties["Nombre"].title.reduce(
       (str: string, text: any) => str + text.plain_text,
       ""
     );
-    const user_id = properties["Usuario"].people[0]?.id?.replace(/-/g, "");
-    return { id, teacher_name, user_id };
+    return { id, teacher_name };
   }
 })();
 
@@ -125,7 +128,7 @@ export const FeedbackSchema = new (class extends Schema<Feedback> {
     group_name,
     teacher_id,
     exercise_id,
-  }: Model<Feedback>): Properties {
+  }: Identificable<Feedback>): Properties {
     const properties: {
       Grupo?: { title: [{ text: { content: string } }] };
       Corrector?: { relation: [{ id: string }] };
@@ -147,7 +150,7 @@ export const FeedbackSchema = new (class extends Schema<Feedback> {
     return properties as Properties;
   }
 
-  mapPage(page: Page): Model<Feedback> {
+  mapPage(page: Page): Identificable<Feedback> {
     const id = page.id.replace(/-/g, "");
     const { properties } = page as any;
 

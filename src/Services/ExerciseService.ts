@@ -1,7 +1,9 @@
 import { NotionService } from "./NotionService";
-import type { Exercise } from "../Models/Schemas";
+import { Exercise, ExerciseSchema } from "../Models/Schemas";
 
 export class ExerciseService extends NotionService<Exercise> {
+  protected schema = ExerciseSchema;
+
   async getExercise(exercise_name: string) {
     const results = await this.repository.query({
       exercise_name: [exercise_name],

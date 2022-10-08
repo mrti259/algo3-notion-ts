@@ -1,5 +1,5 @@
 import "./Services";
 
-import { test } from "./Utils";
+import { test } from "./Shared";
 
 test.run();

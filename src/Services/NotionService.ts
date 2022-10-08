@@ -3,9 +3,11 @@ import { NotionRepository } from "../Models/NotionRepository";
 import type { Schema } from "../Models/NotionRepository";
 
 export abstract class NotionService<T> {
-  protected repository: NotionRepository<T>;
+  protected abstract schema: Schema<T>;
 
-  constructor(client: Client, database_id: string, schema: Schema<T>) {
-    this.repository = new NotionRepository(client, database_id, schema);
+  constructor(private client: Client, private database_id: string) {}
+
+  protected get repository() {
+    return new NotionRepository(this.client, this.database_id, this.schema);
   }
 }

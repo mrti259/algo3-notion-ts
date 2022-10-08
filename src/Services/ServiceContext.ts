@@ -1,32 +1,31 @@
 import { Client } from "@notionhq/client";
-import {
-  ExerciseSchema,
-  FeedbackSchema,
-  TeacherSchema,
-} from "../Models/Schemas";
 import { ExerciseService } from "./ExerciseService";
 import { FeedbackService } from "./FeedbackService";
 import { TeacherService } from "./TeacherService";
 
 export class ServiceContext {
-  exercises: ExerciseService;
-  teachers: TeacherService;
-  feedbacks: FeedbackService;
+  private client: Client;
 
-  constructor({
-    notion_auth: auth,
-    exercise_db,
-    teachers_db,
-    feedback_db,
-  }: {
-    notion_auth: string;
-    exercise_db: string;
-    teachers_db: string;
-    feedback_db: string;
-  }) {
-    const client = new Client({ auth });
-    this.exercises = new ExerciseService(client, exercise_db, ExerciseSchema);
-    this.teachers = new TeacherService(client, teachers_db, TeacherSchema);
-    this.feedbacks = new FeedbackService(client, feedback_db, FeedbackSchema);
+  constructor(
+    private config: {
+      notion_auth: string;
+      exercise_db: string;
+      teachers_db: string;
+      feedback_db: string;
+    }
+  ) {
+    this.client = new Client({ auth: config.notion_auth });
+  }
+
+  get exercises() {
+    return new ExerciseService(this.client, this.config.exercise_db);
+  }
+
+  get teachers() {
+    return new TeacherService(this.client, this.config.teachers_db);
+  }
+
+  get feedbacks() {
+    return new FeedbackService(this.client, this.config.feedback_db);
   }
 }
