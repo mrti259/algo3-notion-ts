@@ -93,7 +93,7 @@ export const FeedbackSchema = new (class extends Schema<Feedback> {
     const group_filter = group_name?.length
       ? {
           or: group_name.map((name) => ({
-            property: "Nombre",
+            property: "Grupo",
             title: { equals: name },
           })),
         }
