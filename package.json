@@ -4,18 +4,22 @@
   "description": "Algo3's Notion integration written in TypeScript",
   "main": "index.js",
   "scripts": {
-    "test": "ts-node test/index.ts"
+    "test": "ts-node test/index.ts",
+    "start": "ts-node src/index.ts",
+    "build": "tsc src/index.ts"
   },
   "author": "Borja Garibotti",
   "license": "ISC",
   "devDependencies": {
     "@types/baretest": "^2.0.0",
+    "@types/express": "^4.17.14",
     "baretest": "^2.0.0",
     "ts-node": "^10.9.1",
     "tsc": "^2.0.4"
   },
   "dependencies": {
     "@notionhq/client": "^2.2.1",
-    "dotenv": "^16.0.3"
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2"
   }
 }
