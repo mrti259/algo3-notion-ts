@@ -93,7 +93,7 @@ export const FeedbackSchema = new (class extends Schema<Feedback> {
     const group_filter = group_name?.length
       ? {
           or: group_name.map((name) => ({
-            property: "Grupo",
+            property: "Nombre",
             title: { equals: name },
           })),
         }
@@ -130,13 +130,13 @@ export const FeedbackSchema = new (class extends Schema<Feedback> {
     exercise_id,
   }: Identificable<Feedback>): Properties {
     const properties: {
-      Grupo?: { title: [{ text: { content: string } }] };
+      Nombre?: { title: [{ text: { content: string } }] };
       Corrector?: { relation: [{ id: string }] };
       Ejercicio?: { relation: [{ id: string }] };
     } = {};
 
     if (group_name) {
-      properties["Grupo"] = { title: [{ text: { content: group_name } }] };
+      properties["Nombre"] = { title: [{ text: { content: group_name } }] };
     }
 
     if (teacher_id) {
@@ -154,7 +154,7 @@ export const FeedbackSchema = new (class extends Schema<Feedback> {
     const id = page.id.replace(/-/g, "");
     const { properties } = page as any;
 
-    const group_name = (properties["Grupo"] as any).title.reduce(
+    const group_name = (properties["Nombre"] as any).title.reduce(
       (str: string, text: any) => str + text.plain_text,
       ""
     );
