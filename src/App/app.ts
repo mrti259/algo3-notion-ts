@@ -5,6 +5,7 @@ import { UpdateFeedbackCorrector } from "../UseCases";
 export const app = express();
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use(function (req, res, next) {
   try {
@@ -22,12 +23,12 @@ app.post("/feedback", async function (req, res) {
     return res.sendStatus(400);
   }
 
-  const ok = await new UpdateFeedbackCorrector(context).run(
-    exercise_name,
-    teachers_and_groups
-  );
+    const ok = await new UpdateFeedbackCorrector(context).run(
+      exercise_name,
+      teachers_and_groups
+    );
 
-  return res.send(ok);
+    return res.send(ok);
 });
 
 app.get("/", function (req, res) {
