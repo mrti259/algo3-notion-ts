@@ -6,7 +6,9 @@
   "scripts": {
     "test": "ts-node test/index.ts",
     "start": "ts-node src/index.ts",
-    "build": "tsc src/index.ts"
+    "clean": "rm -rf ./dist",
+    "build": "npm run clean && tsc -p src/",
+    "deploy": "npm run build && deta deploy"
   },
   "author": "Borja Garibotti",
   "license": "ISC",

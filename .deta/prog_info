@@ -1,0 +1,1 @@
+{"id":"b7e4f19e-157f-4258-bd44-8c152c777cfd","space":19282,"runtime":"nodejs14.x","name":"algo3-notion-ts","path":"m5n0g8","project":"b0x2ffys","account":"144798365827","region":"sa-east-1","deps":["@notionhq/client@^2.2.1","dotenv@^16.0.3","express@^4.18.2"],"envs":null,"public":true,"log_level":"off","cron":""}
