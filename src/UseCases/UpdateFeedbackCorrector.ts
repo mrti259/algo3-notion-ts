@@ -10,17 +10,20 @@ export class UpdateFeedbackCorrector extends UseCase {
       group_name: string;
     }[]
   ) {
-    const exercise = await this.context.exercises.getExercise(exercise_name);
-    if (exercise === null) return false;
-
-    const exercise_id = exercise.id;
-
     const teachers_name = teachers_and_groups.map(
       ({ teacher_name }) => teacher_name
     );
 
-    const teachers = await this.context.teachers.getTeachers(teachers_name);
-    if (teachers.length === 0) return false;
+    const [exercise, teachers] = await Promise.all([
+      this.context.exercises.getExercise(exercise_name),
+      this.context.teachers.getTeachers(teachers_name),
+    ]);
+
+    if (exercise === null || teachers.length === 0) {
+      return false;
+    }
+
+    const exercise_id = exercise.id;
 
     const feedbacks = await this.context.feedbacks.getFeedbacks({
       exercise_id: [exercise.id],
@@ -31,7 +34,9 @@ export class UpdateFeedbackCorrector extends UseCase {
 
     teachers_and_groups.forEach(({ teacher_name, group_name }) => {
       const teacher = teachers.find((t) => t.teacher_name === teacher_name);
-      if (!teacher) return;
+      if (!teacher) {
+        return;
+      }
 
       const teacher_id = teacher.id;
 
@@ -45,6 +50,10 @@ export class UpdateFeedbackCorrector extends UseCase {
         return;
       }
 
+      if (feedback.teacher_id == teacher_id) {
+        return;
+      }
+
       feedbacksToBeUpdated.push({
         id: feedback.id,
         group_name,
@@ -53,17 +62,11 @@ export class UpdateFeedbackCorrector extends UseCase {
       });
     });
 
-    const createFeedbacks = await this.context.feedbacks.createFeedbacks(
-      feedbacksToBeCreated
-    );
-
-    const updatedFeedbacks = await this.context.feedbacks.updateFeedbacks(
-      feedbacksToBeUpdated
-    );
-
-    return (
-      createFeedbacks.length + updatedFeedbacks.length ===
-      teachers_and_groups.length
-    );
+    return await Promise.all([
+      this.context.feedbacks.createFeedbacks(feedbacksToBeCreated),
+      this.context.feedbacks.updateFeedbacks(feedbacksToBeUpdated),
+    ])
+      .then(() => true)
+      .catch(() => false);
   }
 }

@@ -3,21 +3,22 @@ import { context, test, assert } from "../Shared";
 
 async function runBeforeTest() {
   const exercise = await context.exercises.getExercise("Números");
-  const teachers = await context.teachers.getTeachers([
-    "Viktor Hargreeves",
-    "Diego Hargreeves",
-  ]);
+
   const feedbacksToBeRestored = await context.feedbacks.getFeedbacks({
     exercise_id: [exercise!.id],
   });
 
   return async function () {
-    await context.feedbacks.updateFeedbacks(feedbacksToBeRestored);
+    const restoredFeedbacksIds = (
+      await context.feedbacks.updateFeedbacks(feedbacksToBeRestored)
+    ).map((f) => f.id);
 
-    const feedbacksToBeDeleted = await context.feedbacks.getFeedbacks({
-      exercise_id: [exercise!.id],
-      teacher_id: teachers.map((t) => t.id),
-    });
+    const feedbacksToBeDeleted = (
+      await context.feedbacks.getFeedbacks({
+        exercise_id: [exercise!.id],
+      })
+    ).filter((f) => !restoredFeedbacksIds.includes(f.id));
+
     await context.feedbacks.deleteFeedbacks(feedbacksToBeDeleted);
   };
 }
