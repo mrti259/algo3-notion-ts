@@ -1,10 +1,10 @@
 import { NotionService } from "./NotionService";
-import { Feedback, FeedbackSchema } from "../Models/Schemas";
+import { Feedback, FeedbackSchema } from "../models/Schemas";
 import type {
   AttributesOnFilter,
   Identificable,
   Model,
-} from "../Models/NotionRepository";
+} from "../models/NotionRepository";
 
 export class FeedbackService extends NotionService<Feedback> {
   protected schema = FeedbackSchema;

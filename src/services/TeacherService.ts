@@ -1,5 +1,5 @@
 import { NotionService } from "./NotionService";
-import { Teacher, TeacherSchema } from "../Models/Schemas";
+import { Teacher, TeacherSchema } from "../models/Schemas";
 
 export class TeacherService extends NotionService<Teacher> {
   protected schema = TeacherSchema;

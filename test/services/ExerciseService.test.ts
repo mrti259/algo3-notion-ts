@@ -1,4 +1,4 @@
-import { context, test, assert } from "../Shared";
+import { context, test, assert } from "../shared";
 
 const service = context.exercises;
 

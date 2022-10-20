@@ -1,5 +1,5 @@
-import { UpdateFeedbackCorrector } from "../../src/UseCases/UpdateFeedbackCorrector";
-import { context, test, assert } from "../Shared";
+import { UpdateFeedbackCorrector } from "../../src/use-cases/UpdateFeedbackCorrector";
+import { context, test, assert } from "../shared";
 
 async function runBeforeTest() {
   const exercise = await context.exercises.getExercise("Números");
@@ -24,7 +24,7 @@ async function runBeforeTest() {
 }
 
 async function testUseCase() {
-  const ok = await new UpdateFeedbackCorrector(context).run("Números", [
+  const ok = await UpdateFeedbackCorrector.run(context, "Números", [
     { group_name: "Grupo 1", teacher_name: "Viktor Hargreeves" },
     { group_name: "Grupo 2", teacher_name: "Klaus Hargreeves" },
     { group_name: "Grupo 3", teacher_name: "Diego Hargreeves" },

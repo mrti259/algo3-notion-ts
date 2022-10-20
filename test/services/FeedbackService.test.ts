@@ -1,4 +1,4 @@
-import { context, test, assert } from "../Shared";
+import { context, test, assert } from "../shared";
 
 const service = context.feedbacks;
 const exercise_id = "11c2e584fd3541349ab7afdee24fae0e";

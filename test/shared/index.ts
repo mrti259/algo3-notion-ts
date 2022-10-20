@@ -1,7 +1,7 @@
 import { default as assert } from "assert";
 import { default as baretest } from "baretest";
 import { config } from "dotenv";
-import { ServiceContext } from "../../src/Services/ServiceContext";
+import { ServiceContext } from "../../src/services/ServiceContext";
 
 const test = baretest("MyApp");
 

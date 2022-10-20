@@ -1,5 +1,5 @@
 import { config } from "dotenv";
-import { ServiceContext } from "./Services/ServiceContext";
+import { ServiceContext } from "./services/ServiceContext";
 
 config();
 const notion_auth = process.env["NOTION_AUTH"]!;

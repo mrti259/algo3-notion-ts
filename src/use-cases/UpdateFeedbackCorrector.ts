@@ -1,9 +1,10 @@
-import type { Identificable } from "../Models/NotionRepository";
-import type { Feedback } from "../Models/Schemas";
-import { UseCase } from "./UseCase";
+import type { Identificable } from "../models/NotionRepository";
+import type { Feedback } from "../models/Schemas";
+import { ServiceContext } from "../services";
 
-export class UpdateFeedbackCorrector extends UseCase {
-  async run(
+export class UpdateFeedbackCorrector {
+  static async run(
+    context: ServiceContext,
     exercise_name: string,
     teachers_and_groups: {
       teacher_name: string;
@@ -15,8 +16,8 @@ export class UpdateFeedbackCorrector extends UseCase {
     );
 
     const [exercise, teachers] = await Promise.all([
-      this.context.exercises.getExercise(exercise_name),
-      this.context.teachers.getTeachers(teachers_name),
+      context.exercises.getExercise(exercise_name),
+      context.teachers.getTeachers(teachers_name),
     ]);
 
     if (exercise === null || teachers.length === 0) {
@@ -25,7 +26,7 @@ export class UpdateFeedbackCorrector extends UseCase {
 
     const exercise_id = exercise.id;
 
-    const feedbacks = await this.context.feedbacks.getFeedbacks({
+    const feedbacks = await context.feedbacks.getFeedbacks({
       exercise_id: [exercise.id],
     });
 
@@ -63,8 +64,8 @@ export class UpdateFeedbackCorrector extends UseCase {
     });
 
     return await Promise.all([
-      this.context.feedbacks.createFeedbacks(feedbacksToBeCreated),
-      this.context.feedbacks.updateFeedbacks(feedbacksToBeUpdated),
+      context.feedbacks.createFeedbacks(feedbacksToBeCreated),
+      context.feedbacks.updateFeedbacks(feedbacksToBeUpdated),
     ])
       .then(() => true)
       .catch(() => false);

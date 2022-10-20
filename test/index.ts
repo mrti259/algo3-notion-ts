@@ -1,6 +1,6 @@
-import "./Services";
-import "./UseCases";
+import "./services";
+import "./use-cases";
 
-import { test } from "./Shared";
+import { test } from "./shared";
 
 test.run();
