@@ -8,13 +8,16 @@
     "start": "ts-node src/index.ts",
     "clean": "rm -rf ./dist",
     "build": "npm run clean && tsc -p src/",
-    "deploy": "npm run build && deta deploy"
+    "vercel-build": "",
+    "deploy": "vercel deploy",
+    "dev": "vercel dev"
   },
   "author": "Borja Garibotti",
   "license": "ISC",
   "devDependencies": {
     "@types/baretest": "^2.0.0",
     "@types/express": "^4.17.14",
+    "@vercel/node": "^2.5.26",
     "baretest": "^2.0.0",
     "ts-node": "^10.9.1",
     "tsc": "^2.0.4"

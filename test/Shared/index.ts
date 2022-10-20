@@ -23,6 +23,7 @@ const context = new ServiceContext({
   exercise_db,
   teachers_db,
   feedback_db,
+  secret_key: "",
 });
 
 export { assert, context, test };

@@ -4,6 +4,7 @@ import { FeedbackService } from "./FeedbackService";
 import { TeacherService } from "./TeacherService";
 
 export class ServiceContext {
+  secret_key: string;
   private client: Client;
 
   constructor(
@@ -12,9 +13,11 @@ export class ServiceContext {
       exercise_db: string;
       teachers_db: string;
       feedback_db: string;
+      secret_key: string;
     }
   ) {
     this.client = new Client({ auth: config.notion_auth });
+    this.secret_key = config.secret_key;
   }
 
   get exercises() {
