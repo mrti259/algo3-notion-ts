@@ -1,3 +1,3 @@
-import "./ExerciseService.test";
-import "./TeacherService.test";
-import "./FeedbackService.test";
+import "./exercises";
+import "./shared";
+import "./exams";

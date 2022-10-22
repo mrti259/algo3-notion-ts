@@ -1,5 +1,5 @@
-import { NotionService } from "./NotionService";
-import { Exercise, ExerciseSchema } from "../models/Schemas";
+import { NotionService } from "../shared/NotionService";
+import { Exercise, ExerciseSchema } from "./schemas";
 
 export class ExerciseService extends NotionService<Exercise> {
   protected schema = ExerciseSchema;

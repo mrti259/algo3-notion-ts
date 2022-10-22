@@ -1,8 +1,8 @@
-import type { Identificable } from "../models/NotionRepository";
-import type { Feedback } from "../models/Schemas";
+import type { Identificable } from "../services/shared/NotionRepository";
+import type { ExerciseFeedback } from "../services/exercises/schemas";
 import { ServiceContext } from "../services";
 
-export class UpdateFeedbackCorrector {
+export class UpdateExerciseFeedbackCorrector {
   static async run(
     context: ServiceContext,
     exercise_name: string,
@@ -26,12 +26,12 @@ export class UpdateFeedbackCorrector {
 
     const exercise_id = exercise.id;
 
-    const feedbacks = await context.feedbacks.getFeedbacks({
+    const feedbacks = await context.exerciseFeedbacks.getFeedbacks({
       exercise_id: [exercise.id],
     });
 
-    const feedbacksToBeCreated: Feedback[] = [];
-    const feedbacksToBeUpdated: Identificable<Feedback>[] = [];
+    const feedbacksToBeCreated: ExerciseFeedback[] = [];
+    const feedbacksToBeUpdated: Identificable<ExerciseFeedback>[] = [];
 
     teachers_and_groups.forEach(({ teacher_name, group_name }) => {
       const teacher = teachers.find((t) => t.teacher_name === teacher_name);
@@ -44,9 +44,9 @@ export class UpdateFeedbackCorrector {
       const feedback = feedbacks.find((f) => f.group_name === group_name);
       if (!feedback) {
         feedbacksToBeCreated.push({
-          group_name,
+          group_name: group_name,
           teacher_id,
-          exercise_id,
+          exercise_id: exercise_id,
         });
         return;
       }
@@ -57,15 +57,15 @@ export class UpdateFeedbackCorrector {
 
       feedbacksToBeUpdated.push({
         id: feedback.id,
-        group_name,
+        group_name: group_name,
         teacher_id,
-        exercise_id,
+        exercise_id: exercise_id,
       });
     });
 
     return await Promise.all([
-      context.feedbacks.createFeedbacks(feedbacksToBeCreated),
-      context.feedbacks.updateFeedbacks(feedbacksToBeUpdated),
+      context.exerciseFeedbacks.createFeedbacks(feedbacksToBeCreated),
+      context.exerciseFeedbacks.updateFeedbacks(feedbacksToBeUpdated),
     ])
       .then(() => true)
       .catch(() => false);

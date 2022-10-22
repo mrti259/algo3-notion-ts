@@ -4,12 +4,9 @@ import type {
   PartialPageObjectResponse,
   QueryDatabaseParameters,
 } from "@notionhq/client/build/src/api-endpoints";
+import { Schema } from "./Schema";
 
-export type Model<T> = {
-  [k in keyof T]?: T[k];
-};
-
-export type Identificable<T> = { id: string } & Model<T>;
+export type Identificable<T> = { id: string } & Partial<T>;
 
 export type AttributesOnFilter<Model> = {
   [k in keyof Model]?: (Model[k] | null)[];
@@ -20,12 +17,6 @@ export type Page = PageObjectResponse | PartialPageObjectResponse;
 export type Filter = QueryDatabaseParameters["filter"];
 
 export type Properties = PageObjectResponse["properties"];
-
-export abstract class Schema<T> {
-  abstract mapFilter(attributes: AttributesOnFilter<T>): Filter | null;
-  abstract mapProperties(model: Model<T>): Properties;
-  abstract mapPage(page: Page): Identificable<T>;
-}
 
 export class NotionRepository<T> {
   constructor(
@@ -54,7 +45,7 @@ export class NotionRepository<T> {
     return this.mapPages(pages.results);
   }
 
-  async create(models: Model<T>[]) {
+  async create(models: Partial<T>[]) {
     const pages = await Promise.all(
       models.map((model) => {
         return this.client.pages.create({

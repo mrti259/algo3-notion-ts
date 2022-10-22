@@ -1,6 +1,6 @@
 import { Client } from "@notionhq/client";
-import { NotionRepository } from "../models/NotionRepository";
-import type { Schema } from "../models/NotionRepository";
+import { NotionRepository } from "./NotionRepository";
+import { Schema } from "./Schema";
 
 export abstract class NotionService<T> {
   protected abstract schema: Schema<T>;

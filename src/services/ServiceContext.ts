@@ -1,7 +1,10 @@
+import { default as assert } from "assert";
 import { Client } from "@notionhq/client";
-import { ExerciseService } from "./ExerciseService";
-import { FeedbackService } from "./FeedbackService";
-import { TeacherService } from "./TeacherService";
+import { ExerciseService } from "./exercises/ExerciseService";
+import { ExerciseFeedbackService } from "./exercises/ExerciseFeedbackService";
+import { TeacherService } from "./teachers/TeacherService";
+import { ExamService } from "./exams/ExamService";
+import { ExamFeedbackService } from "./exams/ExamFeedbackService";
 
 export class ServiceContext {
   secret_key: string;
@@ -9,14 +12,16 @@ export class ServiceContext {
 
   constructor(
     private config: {
-      notion_auth: string;
-      exercise_db: string;
-      teachers_db: string;
-      feedback_db: string;
       secret_key: string;
+      notion_key: string;
+      teachers_db: string;
+      examfeedback_db: string;
+      exam_db: string;
+      exercise_db: string;
+      exercisefeedback_db: string;
     }
   ) {
-    this.client = new Client({ auth: config.notion_auth });
+    this.client = new Client({ auth: config.notion_key });
     this.secret_key = config.secret_key;
   }
 
@@ -28,7 +33,36 @@ export class ServiceContext {
     return new TeacherService(this.client, this.config.teachers_db);
   }
 
-  get feedbacks() {
-    return new FeedbackService(this.client, this.config.feedback_db);
+  get exerciseFeedbacks() {
+    return new ExerciseFeedbackService(
+      this.client,
+      this.config.exercisefeedback_db
+    );
   }
+
+  get exams() {
+    return new ExamService(this.client, this.config.exam_db);
+  }
+
+  get examFeedbacks() {
+    return new ExamFeedbackService(this.client, this.config.examfeedback_db);
+  }
+
+  static loadFromEnvVars() {
+    return new ServiceContext({
+      secret_key: getEnvVar("SECRET_KEY"),
+      notion_key: getEnvVar("NOTION_KEY"),
+      teachers_db: getEnvVar("TEACHER_DB"),
+      exam_db: getEnvVar("EXAM_DB"),
+      examfeedback_db: getEnvVar("EXAMFEEDBACK_DB"),
+      exercise_db: getEnvVar("EXERCISE_DB"),
+      exercisefeedback_db: getEnvVar("EXERCISEFEEDBACK_DB"),
+    });
+  }
+}
+
+function getEnvVar(env_var: string) {
+  const value = process.env[env_var];
+  assert(!!value, `${env_var} should be defined`);
+  return value;
 }
