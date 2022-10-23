@@ -27,7 +27,7 @@ export class UpdateExamFeedbackCorrector {
     const exam_id = exam.id;
 
     const feedbacks = await context.examFeedbacks.getFeedbacks({
-      exam_id: [exam.id],
+      exam_id: [exam_id],
     });
 
     const feedbacksToBeCreated: ExamFeedback[] = [];

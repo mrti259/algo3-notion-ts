@@ -27,7 +27,7 @@ export class UpdateExerciseFeedbackCorrector {
     const exercise_id = exercise.id;
 
     const feedbacks = await context.exerciseFeedbacks.getFeedbacks({
-      exercise_id: [exercise.id],
+      exercise_id: [exercise_id],
     });
 
     const feedbacksToBeCreated: ExerciseFeedback[] = [];
@@ -44,9 +44,9 @@ export class UpdateExerciseFeedbackCorrector {
       const feedback = feedbacks.find((f) => f.group_name === group_name);
       if (!feedback) {
         feedbacksToBeCreated.push({
-          group_name: group_name,
+          group_name,
           teacher_id,
-          exercise_id: exercise_id,
+          exercise_id,
         });
         return;
       }
@@ -57,9 +57,9 @@ export class UpdateExerciseFeedbackCorrector {
 
       feedbacksToBeUpdated.push({
         id: feedback.id,
-        group_name: group_name,
+        group_name,
         teacher_id,
-        exercise_id: exercise_id,
+        exercise_id,
       });
     });
 

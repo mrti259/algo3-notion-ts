@@ -53,7 +53,7 @@ export const ExamFeedbackSchema = new (class extends Schema<ExamFeedback> {
     exam_id,
     teacher_id,
   }: AttributesOnFilter<ExamFeedback>): Filter | null {
-    const group_filter = student_name?.length
+    const student_filter = student_name?.length
       ? {
           or: student_name.map((name) => ({
             property: "Nombre",
@@ -78,7 +78,7 @@ export const ExamFeedbackSchema = new (class extends Schema<ExamFeedback> {
         }
       : null;
 
-    const filters = [group_filter!, exam_filter!, teacher_filter!].filter(
+    const filters = [student_filter!, exam_filter!, teacher_filter!].filter(
       (f) => f !== null
     );
 
