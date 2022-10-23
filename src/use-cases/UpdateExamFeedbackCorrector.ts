@@ -1,6 +1,6 @@
 import type { Identificable } from "../services/shared/NotionRepository";
-import type { ExerciseFeedback } from "../services/exercises/schemas";
 import { ServiceContext } from "../services";
+import { ExamFeedback } from "../services/exams/schemas";
 
 export class UpdateExamFeedbackCorrector {
   static async run(
@@ -24,14 +24,14 @@ export class UpdateExamFeedbackCorrector {
       return false;
     }
 
-    const exercise_id = exam.id;
+    const exam_id = exam.id;
 
     const feedbacks = await context.examFeedbacks.getFeedbacks({
       exam_id: [exam.id],
     });
 
-    const feedbacksToBeCreated: ExerciseFeedback[] = [];
-    const feedbacksToBeUpdated: Identificable<ExerciseFeedback>[] = [];
+    const feedbacksToBeCreated: ExamFeedback[] = [];
+    const feedbacksToBeUpdated: Identificable<ExamFeedback>[] = [];
 
     teachers_and_students.forEach(
       ({ teacher_name, student_name: student_name }) => {
@@ -45,9 +45,9 @@ export class UpdateExamFeedbackCorrector {
         const feedback = feedbacks.find((f) => f.student_name === student_name);
         if (!feedback) {
           feedbacksToBeCreated.push({
-            group_name: student_name,
+            student_name,
             teacher_id,
-            exercise_id: exercise_id,
+            exam_id,
           });
           return;
         }
@@ -58,9 +58,9 @@ export class UpdateExamFeedbackCorrector {
 
         feedbacksToBeUpdated.push({
           id: feedback.id,
-          group_name: student_name,
+          student_name,
           teacher_id,
-          exercise_id: exercise_id,
+          exam_id,
         });
       }
     );

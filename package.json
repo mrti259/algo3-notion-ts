@@ -9,8 +9,7 @@
     "clean": "rm -rf ./dist",
     "build": "npm run clean && tsc -b tsconfig.build.json",
     "vercel-build": "",
-    "deploy": "vercel deploy",
-    "dev": "vercel dev"
+    "deploy": "vercel deploy"
   },
   "author": "Borja Garibotti",
   "license": "ISC",
