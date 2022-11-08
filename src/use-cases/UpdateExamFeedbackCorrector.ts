@@ -1,6 +1,8 @@
 import type { Identificable } from "../services/shared/NotionRepository";
 import { ServiceContext } from "../services";
-import { ExamFeedback } from "../services/exams/schemas";
+import { Exam, ExamFeedback } from "../services/exams/schemas";
+import { Teacher } from "../services/teachers/schemas";
+import { UserNotification } from "../services/notifications/UserNotification";
 
 export class UpdateExamFeedbackCorrector {
   static async run(
@@ -69,7 +71,52 @@ export class UpdateExamFeedbackCorrector {
       context.examFeedbacks.createFeedbacks(feedbacksToBeCreated),
       context.examFeedbacks.updateFeedbacks(feedbacksToBeUpdated),
     ])
-      .then(() => true)
+      .then(() =>
+        createNotifications(exam, teachers, [
+          ...feedbacksToBeCreated,
+          ...(feedbacksToBeUpdated as ExamFeedback[]),
+        ])
+      )
       .catch(() => false);
   }
+}
+
+function createNotifications(
+  exam: Identificable<Exam>,
+  teachers: Identificable<Teacher>[],
+  feedbacks: ExamFeedback[]
+) {
+  const feedbacksGroupedByTeachers: Map<
+    Identificable<Teacher>,
+    ExamFeedback[]
+  > = new Map();
+
+  feedbacks.forEach((f) => {
+    const teacher = teachers.find((t) => t.id == f.teacher_id);
+    if (!teacher) return;
+    const teachers_feedbacks: ExamFeedback[] =
+      feedbacksGroupedByTeachers.get(teacher) || [];
+    teachers_feedbacks.push(f);
+    feedbacksGroupedByTeachers.set(teacher, teachers_feedbacks);
+  });
+
+  const notifications: UserNotification[] = [];
+
+  for (let [
+    teacher,
+    teacher_feedbacks,
+  ] of feedbacksGroupedByTeachers.entries()) {
+    const teacher_name = teacher.teacher_name!;
+    const exam_name = exam.exam_name!;
+    notifications.push({
+      user_name: teacher_name!,
+      message: `@${teacher_name}: se te han asignado ${
+        teacher_feedbacks.length
+      } correcciones de ${exam_name}: ${teacher_feedbacks
+        .map((f) => f.student_name)
+        .join(", ")}`,
+    });
+  }
+
+  return notifications;
 }

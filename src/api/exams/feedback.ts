@@ -7,7 +7,7 @@ export default async function (req: VercelRequest, res: VercelResponse) {
   const { exam_name, teachers_and_students, secret_key } = body;
 
   if (
-    secret_key !== context.secret_key ||
+    secret_key !== context.config.secret_key ||
     !exam_name ||
     !teachers_and_students
   ) {

@@ -5,14 +5,16 @@ import { ExerciseFeedbackService } from "./exercises/ExerciseFeedbackService";
 import { TeacherService } from "./teachers/TeacherService";
 import { ExamService } from "./exams/ExamService";
 import { ExamFeedbackService } from "./exams/ExamFeedbackService";
+import { NotificationService } from "./notifications/NotificationService";
 
 export class ServiceContext {
-  secret_key: string;
   private client: Client;
 
   constructor(
-    private config: {
+    public config: {
       secret_key: string;
+      slack_token: string;
+      default_channel: string;
       notion_key: string;
       teachers_db: string;
       examfeedback_db: string;
@@ -22,7 +24,6 @@ export class ServiceContext {
     }
   ) {
     this.client = new Client({ auth: config.notion_key });
-    this.secret_key = config.secret_key;
   }
 
   get exercises() {
@@ -48,9 +49,18 @@ export class ServiceContext {
     return new ExamFeedbackService(this.client, this.config.examfeedback_db);
   }
 
+  get notifications() {
+    return new NotificationService(
+      this.config.slack_token,
+      this.config.default_channel
+    );
+  }
+
   static loadFromEnvVars() {
     return new ServiceContext({
       secret_key: getEnvVar("SECRET_KEY"),
+      slack_token: getEnvVar("SLACK_TOKEN"),
+      default_channel: getEnvVar("DEFAULT_CHANNEL"),
       notion_key: getEnvVar("NOTION_KEY"),
       teachers_db: getEnvVar("TEACHER_DB"),
       exam_db: getEnvVar("EXAM_DB"),

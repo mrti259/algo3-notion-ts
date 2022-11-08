@@ -1,6 +1,8 @@
 import type { Identificable } from "../services/shared/NotionRepository";
-import type { ExerciseFeedback } from "../services/exercises/schemas";
+import type { Exercise, ExerciseFeedback } from "../services/exercises/schemas";
 import { ServiceContext } from "../services";
+import { Teacher } from "../services/teachers/schemas";
+import { UserNotification } from "../services/notifications/UserNotification";
 
 export class UpdateExerciseFeedbackCorrector {
   static async run(
@@ -67,7 +69,54 @@ export class UpdateExerciseFeedbackCorrector {
       context.exerciseFeedbacks.createFeedbacks(feedbacksToBeCreated),
       context.exerciseFeedbacks.updateFeedbacks(feedbacksToBeUpdated),
     ])
-      .then(() => true)
+      .then(() =>
+        context.notifications.sendMultipleMessages(
+          createNotifications(exercise, teachers, [
+            ...feedbacksToBeCreated,
+            ...(feedbacksToBeUpdated as ExerciseFeedback[]),
+          ])
+        )
+      )
       .catch(() => false);
   }
+}
+
+function createNotifications(
+  exercise: Identificable<Exercise>,
+  teachers: Identificable<Teacher>[],
+  feedbacks: ExerciseFeedback[]
+) {
+  const feedbacksGroupedByTeachers: Map<
+    Identificable<Teacher>,
+    ExerciseFeedback[]
+  > = new Map();
+
+  feedbacks.forEach((f) => {
+    const teacher = teachers.find((t) => t.id == f.teacher_id);
+    if (!teacher) return;
+    const teachers_feedbacks: ExerciseFeedback[] =
+      feedbacksGroupedByTeachers.get(teacher) || [];
+    teachers_feedbacks.push(f);
+    feedbacksGroupedByTeachers.set(teacher, teachers_feedbacks);
+  });
+
+  const notifications: UserNotification[] = [];
+
+  for (let [
+    teacher,
+    teacher_feedbacks,
+  ] of feedbacksGroupedByTeachers.entries()) {
+    const teacher_name = teacher.teacher_name!;
+    const exercise_name = exercise.exercise_name!;
+    notifications.push({
+      user_name: teacher_name!,
+      message: `@${teacher_name}: se te han asignado ${
+        teacher_feedbacks.length
+      } correcciones de ${exercise_name}: ${teacher_feedbacks
+        .map((f) => f.group_name)
+        .join(", ")}`,
+    });
+  }
+
+  return notifications;
 }
