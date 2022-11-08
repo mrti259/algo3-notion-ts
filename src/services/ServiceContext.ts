@@ -8,11 +8,10 @@ import { ExamFeedbackService } from "./exams/ExamFeedbackService";
 import { NotificationService } from "./notifications/NotificationService";
 
 export class ServiceContext {
-  secret_key: string;
   private client: Client;
 
   constructor(
-    private config: {
+    public config: {
       secret_key: string;
       slack_token: string;
       default_channel: string;
@@ -25,7 +24,6 @@ export class ServiceContext {
     }
   ) {
     this.client = new Client({ auth: config.notion_key });
-    this.secret_key = config.secret_key;
   }
 
   get exercises() {

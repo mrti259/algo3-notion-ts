@@ -1,8 +1,11 @@
+import { SlackService } from "../../../src/services/notifications/SlackService";
 import { assert, context, test } from "../../shared";
 
-const service = context.notifications.slackService;
+const service = new SlackService(context.config.slack_token);
 const bad_channel_id = "";
 const good_channel_id = "U02BYPB5B8V";
+const bad_user_name = "Borja";
+const good_user_name = "Borja Garibotti";
 const message = "holas";
 
 test("Fail send a slack message", async function () {
@@ -12,7 +15,7 @@ test("Fail send a slack message", async function () {
 
 test("Get an user id", async function () {
   const { ok, channel_id } = await service.getUserIdFromRealName(
-    "Borja Garibotti"
+    good_user_name
   );
   assert(ok);
   assert(channel_id === good_channel_id, "Get good id");
@@ -25,28 +28,25 @@ test("Send a slack message", async function () {
 
 test("Get channel id from names", async function () {
   const { channel_id } = await service.getUserIdsFromRealNames([
-    "Borja Garibotti",
+    good_user_name,
   ]);
   assert(channel_id, "channel id should be defined");
   assert(channel_id.length == 1, "channel_id length should be 1");
 });
 
 test("Fail send a message to Borja", async function () {
-  const { ok } = await service.sendMessageToUserNamed("Borja", message);
+  const { ok } = await service.sendMessageToUserNamed(bad_user_name, message);
   assert(!ok, "Should be false");
 });
 
 test("Send a message to Borja", async function () {
-  const { ok } = await service.sendMessageToUserNamed(
-    "Borja Garibotti",
-    message
-  );
+  const { ok } = await service.sendMessageToUserNamed(good_user_name, message);
   assert(ok, "Should be true");
 });
 
 test("Fail send multiple messages", async function () {
   const { ok } = await service.sendMultipleMessages([
-    { user_name: "Borja", message },
+    { user_name: bad_user_name, message },
   ]);
   assert(!ok, "Should be false");
 });
@@ -54,11 +54,9 @@ test("Fail send multiple messages", async function () {
 test("Send a message to Borja", async function () {
   const { ok } = await service.sendMultipleMessages([
     {
-      user_name: "Borja Garibotti",
+      user_name: good_user_name,
       message,
     },
   ]);
   assert(ok, "Should be true");
 });
-
-test.run();

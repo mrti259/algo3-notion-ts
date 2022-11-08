@@ -13,5 +13,3 @@ test("Send multiple messages", async function () {
   ]);
   assert(ok, "Should be true");
 });
-
-test.run();

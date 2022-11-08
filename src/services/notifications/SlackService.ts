@@ -1,5 +1,5 @@
 import { WebClient } from "@slack/web-api";
-import { Notification } from "./Notification";
+import { UserNotification } from "./UserNotification";
 
 export class SlackService {
   private web: WebClient;
@@ -8,7 +8,7 @@ export class SlackService {
     this.web = new WebClient(token);
   }
 
-  async sendMultipleMessages(notifications: Notification[]) {
+  async sendMultipleMessages(notifications: UserNotification[]) {
     let { ok, channel_id } = await this.getUserIdsFromRealNames(
       notifications.map((n) => n.user_name)
     );
@@ -25,7 +25,7 @@ export class SlackService {
     return { ok: response.every((r) => r.ok) };
   }
 
-  async onMissingChannel(failedNotification: Notification) {
+  async onMissingChannel(failedNotification: UserNotification) {
     return await Promise.resolve({ ok: false });
   }
 
