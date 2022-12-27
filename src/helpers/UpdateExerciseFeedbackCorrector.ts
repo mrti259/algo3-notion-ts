@@ -13,6 +13,8 @@ export class UpdateExerciseFeedbackCorrector {
       group_name: string;
     }[]
   ) {
+    let ok = false;
+
     const teachers_name = teachers_and_groups.map(
       ({ teacher_name }) => teacher_name
     );
@@ -23,7 +25,7 @@ export class UpdateExerciseFeedbackCorrector {
     ]);
 
     if (exercise === null || teachers.length === 0) {
-      return false;
+      return { ok };
     }
 
     const exercise_id = exercise.id;
@@ -65,7 +67,7 @@ export class UpdateExerciseFeedbackCorrector {
       });
     });
 
-    return await Promise.all([
+    ok = await Promise.all([
       context.exerciseFeedbacks.createFeedbacks(feedbacksToBeCreated),
       context.exerciseFeedbacks.updateFeedbacks(feedbacksToBeUpdated),
     ])
@@ -77,7 +79,10 @@ export class UpdateExerciseFeedbackCorrector {
           ])
         )
       )
+      .then((res) => res.ok)
       .catch(() => false);
+
+    return { ok };
   }
 }
 

@@ -1,4 +1,4 @@
-import { UpdateExamFeedbackCorrector } from "../../src/use-cases/UpdateExamFeedbackCorrector";
+import { UpdateExamFeedbackCorrector } from "../../src/helpers/UpdateExamFeedbackCorrector";
 import { context, test, assert } from "../shared";
 
 const exam_name = "Parcial II";
@@ -26,7 +26,7 @@ async function setUp() {
 }
 
 async function testCreateAndUpdateExamFeedbacks() {
-  const ok = await UpdateExamFeedbackCorrector.run(context, exam_name, [
+  const { ok } = await UpdateExamFeedbackCorrector.run(context, exam_name, [
     { student_name: "0001 - Estudiante 1", teacher_name: "Viktor Hargreeves" },
     { student_name: "0002 - Estudiante 2", teacher_name: "Klaus Hargreeves" },
     { student_name: "0003 - Estudiante 3", teacher_name: "Diego Hargreeves" },

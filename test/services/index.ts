@@ -1,4 +1,4 @@
 import "./exercises";
-import "./shared";
+import "./teachers";
 import "./exams";
 import "./notifications";

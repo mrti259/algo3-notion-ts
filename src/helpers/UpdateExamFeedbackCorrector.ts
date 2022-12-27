@@ -13,6 +13,8 @@ export class UpdateExamFeedbackCorrector {
       student_name: string;
     }[]
   ) {
+    let ok = false;
+
     const teachers_name = teachers_and_students.map(
       ({ teacher_name }) => teacher_name
     );
@@ -23,7 +25,7 @@ export class UpdateExamFeedbackCorrector {
     ]);
 
     if (exam === null || teachers.length === 0) {
-      return false;
+      return { ok };
     }
 
     const exam_id = exam.id;
@@ -67,17 +69,22 @@ export class UpdateExamFeedbackCorrector {
       }
     );
 
-    return await Promise.all([
+    ok = await Promise.all([
       context.examFeedbacks.createFeedbacks(feedbacksToBeCreated),
       context.examFeedbacks.updateFeedbacks(feedbacksToBeUpdated),
     ])
       .then(() =>
-        createNotifications(exam, teachers, [
-          ...feedbacksToBeCreated,
-          ...(feedbacksToBeUpdated as ExamFeedback[]),
-        ])
+        context.notifications.sendMultipleMessages(
+          createNotifications(exam, teachers, [
+            ...feedbacksToBeCreated,
+            ...(feedbacksToBeUpdated as ExamFeedback[]),
+          ])
+        )
       )
+      .then((res) => res.ok)
       .catch(() => false);
+
+    return { ok };
   }
 }
 

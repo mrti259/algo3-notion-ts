@@ -1,4 +1,4 @@
-import { UpdateExerciseFeedbackCorrector } from "../../src/use-cases/UpdateExerciseFeedbackCorrector";
+import { UpdateExerciseFeedbackCorrector } from "../../src/helpers/UpdateExerciseFeedbackCorrector";
 import { context, test, assert } from "../shared";
 
 async function runBeforeTest() {
@@ -24,7 +24,7 @@ async function runBeforeTest() {
 }
 
 async function testCreateAndUpdateExerciseFeedbacks() {
-  const ok = await UpdateExerciseFeedbackCorrector.run(context, "Números", [
+  const { ok } = await UpdateExerciseFeedbackCorrector.run(context, "Números", [
     { group_name: "Grupo 1", teacher_name: "Viktor Hargreeves" },
     { group_name: "Grupo 2", teacher_name: "Klaus Hargreeves" },
     { group_name: "Grupo 3", teacher_name: "Diego Hargreeves" },
