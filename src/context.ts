@@ -1,5 +1,6 @@
 import { config } from "dotenv";
-import { ServiceContext } from "./services/ServiceContext";
+
+import { ServiceContext } from "./1-services/ServiceContext";
 
 config();
 
