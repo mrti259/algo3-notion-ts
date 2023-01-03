@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+
+import { UpdateExerciseFeedbackCorrector } from "../../2-helpers/UpdateExerciseFeedbackCorrector";
 import { context } from "../../context";
-import { UpdateExerciseFeedbackCorrector } from "../../helpers/UpdateExerciseFeedbackCorrector";
 
 export default async function (req: VercelRequest, res: VercelResponse) {
   const { body } = req;
@@ -17,7 +18,7 @@ export default async function (req: VercelRequest, res: VercelResponse) {
   const { ok } = await UpdateExerciseFeedbackCorrector.run(
     context,
     exercise_name,
-    teachers_and_groups
+    teachers_and_groups,
   );
 
   return res.send({ ok }).end();
