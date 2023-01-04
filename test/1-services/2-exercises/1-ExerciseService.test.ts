@@ -1,6 +1,6 @@
 import { assert, context, test } from "../../shared";
 
-const service = context.exercises;
+const service = context.exercises();
 
 test("Get exercise by name", async function () {
   const exercise = await service.getExercise("Saga II");

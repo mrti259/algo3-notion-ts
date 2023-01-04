@@ -1,9 +1,6 @@
-import type {
-  AttributesOnFilter,
-  Identificable,
-} from "../shared/NotionRepository";
-import { NotionService } from "../shared/NotionService";
 import { RelationProperty, Schema, TitleProperty } from "../shared/Schema";
+import { Service } from "../shared/Service";
+import { AttributesOnFilter, Identificable } from "../shared/types";
 
 export interface ExamFeedback {
   student_name: string;
@@ -17,7 +14,7 @@ export const examFeedbackSchema = new Schema<ExamFeedback>({
   teacher_id: new RelationProperty("Corrector"),
 });
 
-export class ExamFeedbackService extends NotionService<ExamFeedback> {
+export class ExamFeedbackService extends Service<ExamFeedback> {
   protected schema = examFeedbackSchema;
 
   async getFeedbacks(attributes: AttributesOnFilter<ExamFeedback>) {

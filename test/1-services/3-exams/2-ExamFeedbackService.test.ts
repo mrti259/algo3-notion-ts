@@ -1,6 +1,6 @@
 import { assert, context, test } from "../../shared";
 
-const service = context.examFeedbacks;
+const service = context.examFeedbacks();
 const exam_id = "711993736cdf410f98398dec7785f5e6";
 const teacher_id = "f69fcfc2c08f4b78a9890a0f2bb5e76a";
 

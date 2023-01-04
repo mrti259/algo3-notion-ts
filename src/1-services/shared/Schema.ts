@@ -6,7 +6,7 @@ import {
   Identificable,
   Page,
   Properties,
-} from "./NotionRepository";
+} from "./types";
 
 type SchemaProperties<T> = {
   [key in keyof T]: Property<T[key]>;

@@ -14,9 +14,7 @@ test("Fail send a slack message", async function () {
 });
 
 test("Get an user id", async function () {
-  const { ok, channel_id } = await service.getUserIdFromRealName(
-    good_user_name,
-  );
+  const { ok, channel_id } = await service.getUserId(good_user_name);
   assert(ok);
   assert(channel_id === good_channel_id, "Get good id");
 });
@@ -27,9 +25,7 @@ test("Send a slack message", async function () {
 });
 
 test("Get channel id from names", async function () {
-  const { channel_id } = await service.getUserIdsFromRealNames([
-    good_user_name,
-  ]);
+  const { channel_id } = await service.getUserIds([good_user_name]);
   assert(channel_id, "channel id should be defined");
   assert(channel_id.length == 1, "channel_id length should be 1");
 });

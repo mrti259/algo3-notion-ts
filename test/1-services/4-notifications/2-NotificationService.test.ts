@@ -1,6 +1,6 @@
 import { assert, context, test } from "../../shared";
 
-const service = context.notifications;
+const service = context.notifications();
 const message = "holas";
 
 test("Send multiple messages", async function () {

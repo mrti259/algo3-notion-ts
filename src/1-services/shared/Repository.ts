@@ -1,25 +1,10 @@
-import type { Client } from "@notionhq/client";
-import type {
-  PageObjectResponse,
-  PartialPageObjectResponse,
-  QueryDatabaseParameters,
-} from "@notionhq/client/build/src/api-endpoints";
+import { Client } from "@notionhq/client";
+import { QueryDatabaseParameters } from "@notionhq/client/build/src/api-endpoints";
 
 import { Schema } from "./Schema";
+import { AttributesOnFilter, Identificable, Page } from "./types";
 
-export type Identificable<T> = { id: string } & Partial<T>;
-
-export type AttributesOnFilter<Model> = {
-  [k in keyof Model]?: Model[k][];
-};
-
-export type Page = PageObjectResponse | PartialPageObjectResponse;
-
-export type Filter = QueryDatabaseParameters["filter"];
-
-export type Properties = PageObjectResponse["properties"];
-
-export class NotionRepository<T> {
+export class Repository<T> {
   constructor(
     protected client: Client,
     protected database_id: string,

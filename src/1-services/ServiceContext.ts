@@ -27,30 +27,30 @@ export class ServiceContext {
     this.client = new Client({ auth: config.notion_key });
   }
 
-  get exercises() {
+  exercises() {
     return new ExerciseService(this.client, this.config.exercise_db);
   }
 
-  get teachers() {
+  teachers() {
     return new TeacherService(this.client, this.config.teachers_db);
   }
 
-  get exerciseFeedbacks() {
+  exerciseFeedbacks() {
     return new ExerciseFeedbackService(
       this.client,
       this.config.exercisefeedback_db,
     );
   }
 
-  get exams() {
+  exams() {
     return new ExamService(this.client, this.config.exam_db);
   }
 
-  get examFeedbacks() {
+  examFeedbacks() {
     return new ExamFeedbackService(this.client, this.config.examfeedback_db);
   }
 
-  get notifications() {
+  notifications() {
     return new NotificationService(
       this.config.slack_token,
       this.config.default_channel,

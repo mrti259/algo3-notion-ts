@@ -1,2 +1,2 @@
-import "./1-UpdateExerciseFeedbackCorrector.test";
-import "./2-UpdateExamFeedbackCorrector.test";
+import "./1-ExerciseCorrectorUploader.test";
+import "./2-ExamCorrectorUploader.test";

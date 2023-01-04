@@ -1,32 +1,35 @@
-import { UpdateExamFeedbackCorrector } from "../../src/2-helpers/UpdateExamFeedbackCorrector";
+import { ExamCorrectorUploader } from "../../src/2-helpers/2-ExamCorrectorUploader";
 import { assert, context, test } from "../shared";
 
 const exam_name = "Parcial II";
 
 async function setUp() {
-  const exam = await context.exams.getExam(exam_name);
+  const examService = context.exams();
+  const feedbackService = context.examFeedbacks();
 
-  const feedbacksToBeRestored = await context.examFeedbacks.getFeedbacks({
+  const exam = await examService.getExam(exam_name);
+
+  const feedbacksToBeRestored = await feedbackService.getFeedbacks({
     exam_id: [exam!.id],
   });
 
   return async function () {
     const restoredFeedbacksIds = (
-      await context.examFeedbacks.updateFeedbacks(feedbacksToBeRestored)
+      await feedbackService.updateFeedbacks(feedbacksToBeRestored)
     ).map((f) => f.id);
 
     const feedbacksToBeDeleted = (
-      await context.examFeedbacks.getFeedbacks({
+      await feedbackService.getFeedbacks({
         exam_id: [exam!.id],
       })
     ).filter((f) => !restoredFeedbacksIds.includes(f.id));
 
-    await context.examFeedbacks.deleteFeedbacks(feedbacksToBeDeleted);
+    await feedbackService.deleteFeedbacks(feedbacksToBeDeleted);
   };
 }
 
 async function testCreateAndUpdateExamFeedbacks() {
-  const { ok } = await UpdateExamFeedbackCorrector.run(context, exam_name, [
+  const { ok } = await ExamCorrectorUploader.upload(context, exam_name, [
     {
       student_name: "0001 - Estudiante 1",
       teacher_name: "Viktor Hargreeves",

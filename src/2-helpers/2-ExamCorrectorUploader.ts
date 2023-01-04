@@ -3,10 +3,10 @@ import { Teacher } from "../1-services/1-teachers/TeacherService";
 import { ExamFeedback } from "../1-services/3-exams/ExamFeedbackService";
 import { Exam } from "../1-services/3-exams/ExamService";
 import { UserNotification } from "../1-services/4-notifications/UserNotification";
-import type { Identificable } from "../1-services/shared/NotionRepository";
+import { Identificable } from "../1-services/shared/types";
 
-export class UpdateExamFeedbackCorrector {
-  static async run(
+export class ExamCorrectorUploader {
+  static async upload(
     context: ServiceContext,
     exam_name: string,
     teachers_and_students: {
@@ -21,8 +21,8 @@ export class UpdateExamFeedbackCorrector {
     );
 
     const [exam, teachers] = await Promise.all([
-      context.exams.getExam(exam_name),
-      context.teachers.getTeachers(teachers_name),
+      context.exams().getExam(exam_name),
+      context.teachers().getTeachers(teachers_name),
     ]);
 
     if (exam === null || teachers.length === 0) {
@@ -31,7 +31,7 @@ export class UpdateExamFeedbackCorrector {
 
     const exam_id = exam.id;
 
-    const feedbacks = await context.examFeedbacks.getFeedbacks({
+    const feedbacks = await context.examFeedbacks().getFeedbacks({
       exam_id: [exam_id],
     });
 
@@ -71,16 +71,18 @@ export class UpdateExamFeedbackCorrector {
     );
 
     ok = await Promise.all([
-      context.examFeedbacks.createFeedbacks(feedbacksToBeCreated),
-      context.examFeedbacks.updateFeedbacks(feedbacksToBeUpdated),
+      context.examFeedbacks().createFeedbacks(feedbacksToBeCreated),
+      context.examFeedbacks().updateFeedbacks(feedbacksToBeUpdated),
     ])
       .then(() =>
-        context.notifications.sendMultipleMessages(
-          createNotifications(exam, teachers, [
-            ...feedbacksToBeCreated,
-            ...(feedbacksToBeUpdated as ExamFeedback[]),
-          ]),
-        ),
+        context
+          .notifications()
+          .sendMultipleMessages(
+            createNotifications(exam, teachers, [
+              ...feedbacksToBeCreated,
+              ...(feedbacksToBeUpdated as ExamFeedback[]),
+            ]),
+          ),
       )
       .then((res) => res.ok)
       .catch(() => false);

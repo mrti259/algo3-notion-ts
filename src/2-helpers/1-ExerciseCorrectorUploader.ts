@@ -3,10 +3,10 @@ import { Teacher } from "../1-services/1-teachers/TeacherService";
 import { ExerciseFeedback } from "../1-services/2-exercises/ExerciseFeedbackService";
 import { Exercise } from "../1-services/2-exercises/ExerciseService";
 import { UserNotification } from "../1-services/4-notifications/UserNotification";
-import type { Identificable } from "../1-services/shared/NotionRepository";
+import { Identificable } from "../1-services/shared/types";
 
-export class UpdateExerciseFeedbackCorrector {
-  static async run(
+export class ExerciseCorrectorUploader {
+  static async upload(
     context: ServiceContext,
     exercise_name: string,
     teachers_and_groups: {
@@ -21,8 +21,8 @@ export class UpdateExerciseFeedbackCorrector {
     );
 
     const [exercise, teachers] = await Promise.all([
-      context.exercises.getExercise(exercise_name),
-      context.teachers.getTeachers(teachers_name),
+      context.exercises().getExercise(exercise_name),
+      context.teachers().getTeachers(teachers_name),
     ]);
 
     if (exercise === null || teachers.length === 0) {
@@ -31,7 +31,7 @@ export class UpdateExerciseFeedbackCorrector {
 
     const exercise_id = exercise.id;
 
-    const feedbacks = await context.exerciseFeedbacks.getFeedbacks({
+    const feedbacks = await context.exerciseFeedbacks().getFeedbacks({
       exercise_id: [exercise_id],
     });
 
@@ -69,16 +69,18 @@ export class UpdateExerciseFeedbackCorrector {
     });
 
     ok = await Promise.all([
-      context.exerciseFeedbacks.createFeedbacks(feedbacksToBeCreated),
-      context.exerciseFeedbacks.updateFeedbacks(feedbacksToBeUpdated),
+      context.exerciseFeedbacks().createFeedbacks(feedbacksToBeCreated),
+      context.exerciseFeedbacks().updateFeedbacks(feedbacksToBeUpdated),
     ])
       .then(() =>
-        context.notifications.sendMultipleMessages(
-          createNotifications(exercise, teachers, [
-            ...feedbacksToBeCreated,
-            ...(feedbacksToBeUpdated as ExerciseFeedback[]),
-          ]),
-        ),
+        context
+          .notifications()
+          .sendMultipleMessages(
+            createNotifications(exercise, teachers, [
+              ...feedbacksToBeCreated,
+              ...(feedbacksToBeUpdated as ExerciseFeedback[]),
+            ]),
+          ),
       )
       .then((res) => res.ok)
       .catch(() => false);

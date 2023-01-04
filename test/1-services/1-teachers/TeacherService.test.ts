@@ -1,6 +1,6 @@
 import { assert, context, test } from "../../shared";
 
-const service = context.teachers;
+const service = context.teachers();
 
 test("Get all teachers", async function () {
   const results = await service.getTeachers([]);

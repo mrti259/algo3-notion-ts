@@ -1,4 +1,5 @@
 import { WebClient } from "@slack/web-api";
+import { Member } from "@slack/web-api/dist/response/UsersListResponse";
 
 import { UserNotification } from "./UserNotification";
 
@@ -10,7 +11,7 @@ export class SlackService {
   }
 
   async sendMultipleMessages(notifications: UserNotification[]) {
-    let { ok, channel_id } = await this.getUserIdsFromRealNames(
+    let { ok, channel_id } = await this.getUserIds(
       notifications.map((n) => n.user_name),
     );
     if (!channel_id) return { ok };
@@ -31,7 +32,7 @@ export class SlackService {
   }
 
   async sendMessageToUserNamed(user_name: string, message: string) {
-    let { ok, channel_id } = await this.getUserIdFromRealName(user_name);
+    let { ok, channel_id } = await this.getUserId(user_name);
     if (!channel_id) return { ok };
 
     ({ ok } = await this.sendMessageToChannel(channel_id, message));
@@ -51,12 +52,12 @@ export class SlackService {
     return { ok };
   }
 
-  async getUserIdFromRealName(real_name: string) {
-    const { ok, users } = await this.getUsersFromRealNames([real_name]);
+  async getUserId(name: string) {
+    const { ok, users } = await this.getUsers([name]);
 
     if (!users) return { ok };
 
-    const result = users.find((m) => m?.real_name == real_name);
+    const result = users.find((m) => this.matchUserWithName(m, name));
 
     if (!result) return { ok: false };
 
@@ -65,8 +66,8 @@ export class SlackService {
     return { ok, channel_id };
   }
 
-  async getUserIdsFromRealNames(names: string[]) {
-    const { ok, users } = await this.getUsersFromRealNames(names);
+  async getUserIds(names: string[]) {
+    const { ok, users } = await this.getUsers(names);
 
     if (!users) return { ok };
 
@@ -75,15 +76,27 @@ export class SlackService {
     return { ok, channel_id };
   }
 
-  async getUsersFromRealNames(names: string[]) {
+  async getUsers(names: string[]) {
     const response = await this.web.users.list();
 
     const { ok, members } = response;
 
     if (!members) return { ok };
 
-    const users = names.map((name) => members.find((m) => m.real_name == name));
+    const users = names.map((name) =>
+      members.find((m) => this.matchUserWithName(m, name)),
+    );
 
     return { ok, users };
+  }
+
+  private matchUserWithName(member: Member | undefined, name: string) {
+    if (!name || !member) return false;
+    return (
+      member.name === name ||
+      member.real_name === name ||
+      member.profile?.display_name === name ||
+      member.profile?.real_name === name
+    );
   }
 }
