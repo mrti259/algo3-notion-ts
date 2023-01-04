@@ -1,4 +1,5 @@
 import {
+  CreatePageParameters,
   PageObjectResponse,
   PartialPageObjectResponse,
   QueryDatabaseParameters,
@@ -15,3 +16,9 @@ export type Page = PageObjectResponse | PartialPageObjectResponse;
 export type Filter = QueryDatabaseParameters["filter"];
 
 export type Properties = PageObjectResponse["properties"];
+
+type Values<T> = T[keyof T];
+
+export type PagePropertyResponse = Values<PageObjectResponse["properties"]>;
+
+export type PagePropertyRequest = Values<CreatePageParameters["properties"]>;

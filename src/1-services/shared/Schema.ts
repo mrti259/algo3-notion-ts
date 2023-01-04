@@ -1,18 +1,19 @@
 import { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints";
+import { default as assert } from "assert";
 
 import {
   AttributesOnFilter,
   Filter,
   Identificable,
   Page,
+  PagePropertyRequest,
+  PagePropertyResponse,
   Properties,
 } from "./types";
 
 type SchemaProperties<T> = {
   [key in keyof T]: Property<T[key]>;
 };
-
-type PageProperty = any;
 
 export class Schema<T> {
   constructor(public properties: SchemaProperties<T>) {}
@@ -35,7 +36,7 @@ export class Schema<T> {
   }
 
   getProperties(model: Partial<T>): Properties {
-    const properties: Properties = {};
+    const properties: Record<string, PagePropertyRequest> = {};
 
     for (const propertyName in model) {
       const property = this.properties[propertyName];
@@ -44,7 +45,7 @@ export class Schema<T> {
       properties[property.name] = property.mapValue(value);
     }
 
-    return properties;
+    return properties as Properties;
   }
 
   mapPage(page: Page): Identificable<T> {
@@ -73,9 +74,11 @@ export abstract class Property<TValue> {
 
   protected abstract _filter(value: TValue): Filter;
 
-  abstract mapValue(value: TValue): PageProperty;
+  abstract mapValue(value: TValue): PagePropertyRequest;
 
-  abstract mapPageProperty(pageProperty: PageProperty): TValue | undefined;
+  abstract mapPageProperty(
+    pageProperty: PagePropertyResponse,
+  ): TValue | undefined;
 }
 
 export class TitleProperty extends Property<string> {
@@ -86,11 +89,12 @@ export class TitleProperty extends Property<string> {
     };
   }
 
-  mapValue(value: string): PageProperty {
+  mapValue(value: string): PagePropertyRequest {
     return { title: [{ text: { content: value } }] };
   }
 
-  mapPageProperty(pageProperty: PageProperty): string {
+  mapPageProperty(pageProperty: PagePropertyResponse): string {
+    assert(pageProperty.type === "title");
     return pageProperty.title
       .map((text: { plain_text: string }) => text.plain_text)
       .join("");
@@ -105,11 +109,12 @@ export class RelationProperty extends Property<string> {
     };
   }
 
-  mapValue(value: string): PageProperty {
+  mapValue(value: string): PagePropertyRequest {
     return { relation: [{ id: value }] };
   }
 
-  mapPageProperty(pageProperty: PageProperty): string | undefined {
+  mapPageProperty(pageProperty: PagePropertyResponse): string | undefined {
+    assert(pageProperty.type === "relation");
     return pageProperty.relation[0]?.id;
   }
 }
