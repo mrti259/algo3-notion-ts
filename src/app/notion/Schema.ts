@@ -1,12 +1,12 @@
 import { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints";
 
 import {
-  AttributesOnFilter,
   Filter,
   Identificable,
   Page,
   Properties,
-} from "./NotionRepository";
+  SearchParams,
+} from "./Database";
 
 type SchemaProperties<T> = {
   [key in keyof T]: Property<T[key]>;
@@ -17,7 +17,7 @@ type PageProperty = any;
 export class Schema<T> {
   constructor(public properties: SchemaProperties<T>) {}
 
-  getFilters(attributes: AttributesOnFilter<T>): Filter | null {
+  getFilters(attributes: SearchParams<T>): Filter | null {
     const filters: Filter[] = [];
 
     for (const attribute in attributes) {

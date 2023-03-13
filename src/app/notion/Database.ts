@@ -7,10 +7,10 @@ import type {
 
 import { Schema } from "./Schema";
 
-export type Identificable<T> = { id: string } & Partial<T>;
+export type Identificable<T> = { id: string } & T;
 
-export type AttributesOnFilter<Model> = {
-  [k in keyof Model]?: Model[k][];
+export type SearchParams<T> = {
+  [k in keyof T]?: Array<T[k]>;
 };
 
 export type Page = PageObjectResponse | PartialPageObjectResponse;
@@ -19,7 +19,7 @@ export type Filter = QueryDatabaseParameters["filter"];
 
 export type Properties = PageObjectResponse["properties"];
 
-export class NotionRepository<T> {
+export class Database<T> {
   constructor(
     protected client: Client,
     protected database_id: string,
@@ -30,7 +30,7 @@ export class NotionRepository<T> {
     return pages.map((page) => this.schema.mapPage(page));
   }
 
-  async query(attributes: AttributesOnFilter<T>) {
+  async query(attributes: SearchParams<T>) {
     const queryParameters: QueryDatabaseParameters = {
       database_id: this.database_id,
     };
@@ -46,7 +46,7 @@ export class NotionRepository<T> {
     return this.mapPages(pages.results);
   }
 
-  async create(models: Partial<T>[]) {
+  async create(models: T[]) {
     const pages = await Promise.all(
       models.map((model) => {
         return this.client.pages.create({
