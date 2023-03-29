@@ -9,11 +9,11 @@ export const docenteSchema = new Schema<Docente>({
 });
 export const devolucionEjercicioSchema = new Schema<Devolucion>({
   nombre: new TitleProperty("Nombre"),
-  docente_id: new TitleProperty("Correctores"),
+  docente_id: new RelationProperty("Corrector"),
   ejercicio_id: new RelationProperty("Ejercicio"),
 });
 export const devolucionExamenSchema = new Schema<Devolucion>({
   nombre: new TitleProperty("Nombre"),
-  docente_id: new TitleProperty("Correctores"),
+  docente_id: new RelationProperty("Corrector"),
   ejercicio_id: new RelationProperty("Examen"),
 });

@@ -1,19 +1,15 @@
 import { Asignador } from "./Asignador";
 import { Asignacion, Config } from "./types";
 
-const SECRET_TOKEN = process.env.SECRET_TOKEN;
-
 export async function asignarEjercicio(
-  body: Partial<{
-    secret_token: string;
-    config: Config;
-    asignaciones: Array<Asignacion>;
-  }>,
+  body:
+    | {
+        config: Config;
+        asignaciones: Array<Asignacion>;
+      }
+    | undefined,
 ) {
-  const { secret_token, config, asignaciones } = body;
-  if (secret_token !== SECRET_TOKEN) {
-    return false;
-  }
+  const { config, asignaciones } = body || {};
   if (!asignaciones || !asignaciones.length) {
     return false;
   }
@@ -25,16 +21,14 @@ export async function asignarEjercicio(
 }
 
 export async function asignarExamen(
-  body: Partial<{
-    secret_token: string;
-    config: Config;
-    asignaciones: Array<Asignacion>;
-  }>,
+  body:
+    | {
+        config: Config;
+        asignaciones: Array<Asignacion>;
+      }
+    | undefined,
 ) {
-  const { secret_token, config, asignaciones } = body;
-  if (secret_token !== SECRET_TOKEN) {
-    return false;
-  }
+  const { config, asignaciones } = body || {};
   if (!asignaciones || !asignaciones.length) {
     return false;
   }

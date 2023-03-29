@@ -35,12 +35,13 @@ export class Asignador {
     this.agruparDevoluciones();
     this.crearNotificaciones();
     await this.enviar();
+    return true;
   }
 
   private agruparDevoluciones() {
     for (const asignacion of this.asignaciones) {
       const ejercicio = this.ejercicios.find(
-        (eje) => eje.nombre === asignacion.nombre,
+        (eje) => eje.nombre === asignacion.ejercicio,
       );
       const docente = this.docentes.find(
         (doc) => doc.nombre === asignacion.docente,
@@ -48,7 +49,7 @@ export class Asignador {
       if (!ejercicio || !docente) continue;
       const devolucionesExistente = this.devolucionesExistentes.find(
         (dev) =>
-          dev.ejercicio_id == ejercicio.id && dev.docente_id === docente.id,
+          dev.ejercicio_id == ejercicio.id && dev.nombre === asignacion.nombre,
       );
       if (!devolucionesExistente) {
         this.devolucionesACrear.push({
@@ -82,11 +83,15 @@ export class Asignador {
     }
 
     for (const [docente, asignaciones] of asignacionesPorDocente) {
+      const singular = asignaciones.length === 1;
+      const n = singular ? "" : "n";
+      const s = singular ? "" : "s";
+      const ones = singular ? "ón" : "ones";
       this.notificaciones.push({
         destinatario: docente.nombre,
-        mensaje: `Se te han asignado ${
+        mensaje: `Se te ha${n} asignado ${
           asignaciones.length
-        } correcciones nuevas: ${asignaciones
+        } correcci${ones} nueva${s}: ${asignaciones
           .map((dev) => dev.nombre)
           .join(", ")}`,
       });
@@ -102,25 +107,25 @@ export class Asignador {
   }
 
   static async asignarEjercicio(config: Config, asignaciones: Asignacion[]) {
-    const contexto = Asignador.contextoParaEjercicios(config);
-    const asignador = await this.paraContexto(asignaciones, contexto);
-    await asignador.asignar();
+    const contexto = this.contextoParaEjercicios(config);
+    return await this.asignarParaContexto(asignaciones, contexto);
   }
 
   static async asignarExamen(config: Config, asignaciones: Asignacion[]) {
     const contexto = this.contextoParaExamen(config);
-    const asignador = await this.paraContexto(asignaciones, contexto);
-    await asignador.asignar();
+    return await this.asignarParaContexto(asignaciones, contexto);
   }
 
-  private static async paraContexto(
+  private static async asignarParaContexto(
     asignaciones: Asignacion[],
-    context: Contexto,
+    contexto: Contexto,
   ) {
-    const ejercicios = await this.traerEjercicios(context, asignaciones);
-    const docentes = await this.traerDocentes(context, asignaciones);
+    const [ejercicios, docentes] = await Promise.all([
+      this.traerEjercicios(contexto, asignaciones),
+      this.traerDocentes(contexto, asignaciones),
+    ]);
     const devoluciones = await this.traerDevoluciones(
-      context,
+      contexto,
       ejercicios,
       docentes,
     );
@@ -129,17 +134,17 @@ export class Asignador {
       ejercicios,
       docentes,
       devoluciones,
-      context,
+      contexto,
     );
-    return asignador;
+    return await asignador.asignar();
   }
 
   private static contextoParaEjercicios(config: Config) {
     const client = new Client({ auth: config.notion.token });
     return {
-      ejercicios: Asignador.ejercicios(client, config),
-      docentes: Asignador.docentes(client, config),
-      devoluciones: Asignador.devolucionesEjercicio(client, config),
+      ejercicios: this.ejercicios(client, config),
+      docentes: this.docentes(client, config),
+      devoluciones: this.devolucionesEjercicio(client, config),
       notificaciones: this.notificador(config),
     };
   }
@@ -147,9 +152,9 @@ export class Asignador {
   private static contextoParaExamen(config: Config) {
     const client = new Client({ auth: config.notion.token });
     return {
-      ejercicios: Asignador.ejercicios(client, config),
-      docentes: Asignador.docentes(client, config),
-      devoluciones: Asignador.devolucionesExamen(client, config),
+      ejercicios: this.ejercicios(client, config),
+      docentes: this.docentes(client, config),
+      devoluciones: this.devolucionesExamen(client, config),
       notificaciones: this.notificador(config),
     };
   }
@@ -222,7 +227,7 @@ export class Asignador {
   ) {
     return await context.devoluciones.query({
       ejercicio_id: ejercicios.map((e) => e.id),
-      docente_id: docentes.map((d) => d.nombre),
+      docente_id: docentes.map((d) => d.id),
     });
   }
 }
