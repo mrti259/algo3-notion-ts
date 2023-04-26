@@ -1,4 +1,4 @@
-import { Notificador } from "./Slack";
+import { Notificador } from "./Notificador";
 import { Database } from "./notion/Database";
 
 export type Asignacion = {

@@ -1,6 +1,6 @@
 import { Client } from "@notionhq/client";
 
-import { Notificador } from "./Slack";
+import { Notificador } from "./Notificador";
 import { Database, Identificable } from "./notion/Database";
 import {
   devolucionEjercicioSchema,
