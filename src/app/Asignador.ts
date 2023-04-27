@@ -1,6 +1,7 @@
 import { Client } from "@notionhq/client";
 
 import { Notificador } from "./Notificador";
+import { flat } from "./helpers/flat";
 import { Database, Identificable } from "./notion/Database";
 import {
   devolucionEjercicioSchema,
@@ -41,31 +42,35 @@ export class Asignador {
   private agruparDevoluciones() {
     for (const asignacion of this.asignaciones) {
       const ejercicio = this.ejercicios.find(
-        (eje) => eje.nombre === asignacion.ejercicio,
+        (ejercicio) => ejercicio.nombre === asignacion.ejercicio,
       );
-      const docente = this.docentes.find(
-        (doc) => doc.nombre === asignacion.docente,
+      const id_docentes = this.docentes
+        .filter((docente) => asignacion.docentes.includes(docente.nombre))
+        .map((docente) => docente.id);
+
+      if (!ejercicio || !id_docentes.length) continue;
+
+      const devolucionExistente = this.devolucionesExistentes.find(
+        (devolucion) =>
+          devolucion.id_ejercicio == ejercicio.id &&
+          devolucion.nombre === asignacion.nombre,
       );
-      if (!ejercicio || !docente) continue;
-      const devolucionesExistente = this.devolucionesExistentes.find(
-        (dev) =>
-          dev.ejercicio_id == ejercicio.id && dev.nombre === asignacion.nombre,
-      );
-      if (!devolucionesExistente) {
+      if (!devolucionExistente) {
         this.devolucionesACrear.push({
           nombre: asignacion.nombre,
-          docente_id: docente.id,
-          ejercicio_id: ejercicio.id,
+          id_docentes: id_docentes,
+          id_ejercicio: ejercicio.id,
         });
         continue;
       }
-      if (devolucionesExistente.docente_id === docente.id) {
-        continue;
+      if (
+        id_docentes.some((id) => !devolucionExistente.id_docentes.includes(id))
+      ) {
+        this.devolucionesAActualizar.push({
+          ...devolucionExistente,
+          id_docentes: id_docentes,
+        });
       }
-      this.devolucionesAActualizar.push({
-        ...devolucionesExistente,
-        docente_id: docente.id,
-      });
     }
   }
 
@@ -75,8 +80,8 @@ export class Asignador {
       this.devolucionesAActualizar,
     );
     for (const devolucion of nuevasAsignaciones) {
-      const docente = this.docentes.find(
-        (doc) => doc.id === devolucion.docente_id,
+      const docente = this.docentes.find((docente) =>
+        devolucion.id_docentes.includes(docente.id),
       )!;
       const asignadasDocente = asignacionesPorDocente.get(docente) || [];
       asignacionesPorDocente.set(docente, [...asignadasDocente, devolucion]);
@@ -124,11 +129,7 @@ export class Asignador {
       this.traerEjercicios(contexto, asignaciones),
       this.traerDocentes(contexto, asignaciones),
     ]);
-    const devoluciones = await this.traerDevoluciones(
-      contexto,
-      ejercicios,
-      docentes,
-    );
+    const devoluciones = await this.traerDevoluciones(contexto, ejercicios);
     const asignador = new this(
       asignaciones,
       ejercicios,
@@ -188,46 +189,30 @@ export class Asignador {
   }
 
   private static async traerEjercicios(
-    context: {
-      ejercicios: Database<Ejercicio>;
-      docentes: Database<Docente>;
-      devoluciones: Database<Devolucion>;
-      notificaciones: Notificador;
-    },
+    contexto: Contexto,
     asignaciones: Asignacion[],
   ) {
-    return await context.ejercicios.query({
+    return await contexto.ejercicios.query({
       nombre: asignaciones.map((a) => a.ejercicio),
     });
   }
 
   private static async traerDocentes(
-    context: {
-      ejercicios: Database<Ejercicio>;
-      docentes: Database<Docente>;
-      devoluciones: Database<Devolucion>;
-      notificaciones: Notificador;
-    },
+    contexto: Contexto,
     asignaciones: Asignacion[],
   ) {
-    return await context.docentes.query({
-      nombre: asignaciones.map((a) => a.docente),
+    const docentes = flat(asignaciones.map((a) => a.docentes));
+    return await contexto.docentes.query({
+      nombre: docentes,
     });
   }
 
   private static async traerDevoluciones(
-    context: {
-      ejercicios: Database<Ejercicio>;
-      docentes: Database<Docente>;
-      devoluciones: Database<Devolucion>;
-      notificaciones: Notificador;
-    },
+    contexto: Contexto,
     ejercicios: Identificable<Ejercicio>[],
-    docentes: Identificable<Docente>[],
   ) {
-    return await context.devoluciones.query({
-      ejercicio_id: ejercicios.map((e) => e.id),
-      docente_id: docentes.map((d) => d.id),
+    return await contexto.devoluciones.query({
+      id_ejercicio: ejercicios.map((e) => e.id),
     });
   }
 }

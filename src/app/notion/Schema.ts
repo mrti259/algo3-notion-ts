@@ -7,12 +7,11 @@ import {
   Properties,
   SearchParams,
 } from "./Database";
+import { Property } from "./Property";
 
 type SchemaProperties<T> = {
   [key in keyof T]: Property<T[key]>;
 };
-
-type PageProperty = any;
 
 export class Schema<T> {
   constructor(public properties: SchemaProperties<T>) {}
@@ -60,56 +59,5 @@ export class Schema<T> {
     }
 
     return model;
-  }
-}
-
-export abstract class Property<TValue> {
-  constructor(public name: string) {}
-
-  filter(values: TValue[]): Filter {
-    const filters = { or: values.map((value) => this._filter(value)) };
-    return filters as Filter;
-  }
-
-  protected abstract _filter(value: TValue): Filter;
-
-  abstract mapValue(value: TValue): PageProperty;
-
-  abstract mapPageProperty(pageProperty: PageProperty): TValue | undefined;
-}
-
-export class TitleProperty extends Property<string> {
-  protected _filter(value: string): Filter {
-    return {
-      property: this.name,
-      title: value ? { equals: value } : { is_empty: true },
-    };
-  }
-
-  mapValue(value: string): PageProperty {
-    return { title: [{ text: { content: value } }] };
-  }
-
-  mapPageProperty(pageProperty: PageProperty): string {
-    return pageProperty.title
-      .map((text: { plain_text: string }) => text.plain_text)
-      .join("");
-  }
-}
-
-export class RelationProperty extends Property<string> {
-  protected _filter(value: string): Filter {
-    return {
-      property: this.name,
-      relation: value ? { contains: value } : { is_empty: true },
-    };
-  }
-
-  mapValue(value: string): PageProperty {
-    return { relation: [{ id: value }] };
-  }
-
-  mapPageProperty(pageProperty: PageProperty): string | undefined {
-    return pageProperty.relation[0]?.id;
   }
 }
