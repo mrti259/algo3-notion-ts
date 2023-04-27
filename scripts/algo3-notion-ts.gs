@@ -90,7 +90,7 @@ function _getExerciseData(range_name, exercise_name, teachers_column) {
 
     const asignaciones = values.map((row) => ({
       nombre: `Grupo ${row[0]}`,
-      docentes: row[teachers_column].split(",").map((name) => name.trim()),
+      docentes: _splitNames(row[teachers_column]),
       ejercicio: exercise_name,
     }));
     const { notion, slack } = notion_script_config;
@@ -122,7 +122,7 @@ function _getExamData(range_name, exam_name, teachers_column) {
 
     const asignaciones = values.map((row) => ({
       nombre: `${row[0]} - ${row[1]}`,
-      docentes: row[teachers_column],
+      docentes: _splitNames(row[teachers_column]),
       ejercicio: exam_name,
     }));
     const { notion, slack } = notion_script_config;
@@ -160,4 +160,8 @@ function _postData(url, data) {
       2,
     ),
   );
+}
+
+function _splitNames(names) {
+  return names.split(",").map((name) => name.trim());
 }
