@@ -3,7 +3,7 @@ import { Database } from "./notion/Database";
 
 export type Asignacion = {
   nombre: string;
-  docente: string;
+  docentes: Array<string>;
   ejercicio: string;
 };
 
@@ -14,15 +14,18 @@ export type Ejercicio = {
 export type Docente = {
   nombre: string;
 };
+
 export type Devolucion = {
   nombre: string;
-  docente_id: string;
-  ejercicio_id: string;
+  id_docentes: Array<string>;
+  id_ejercicio: string;
 };
+
 export type Notificacion = {
   destinatario: string;
   mensaje: string;
 };
+
 export type Config = {
   notion: {
     token: string;
@@ -35,6 +38,7 @@ export type Config = {
     default_channel: string;
   };
 };
+
 export type Contexto = {
   ejercicios: Database<Ejercicio>;
   docentes: Database<Docente>;
