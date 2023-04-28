@@ -44,11 +44,11 @@ export class Asignador {
       const ejercicio = this.ejercicios.find(
         (ejercicio) => ejercicio.nombre === asignacion.ejercicio,
       );
-      const id_docentes = this.docentes
+      const idDocentes = this.docentes
         .filter((docente) => asignacion.docentes.includes(docente.nombre))
         .map((docente) => docente.id);
 
-      if (!ejercicio || !id_docentes.length) continue;
+      if (!ejercicio || !idDocentes.length) continue;
 
       const devolucionExistente = this.devolucionesExistentes.find(
         (devolucion) =>
@@ -56,22 +56,38 @@ export class Asignador {
           devolucion.nombre === asignacion.nombre,
       );
       if (!devolucionExistente) {
-        this.devolucionesACrear.push({
-          nombre: asignacion.nombre,
-          id_docentes: id_docentes,
-          id_ejercicio: ejercicio.id,
-        });
+        this.crearDevolucion(asignacion, ejercicio, idDocentes);
         continue;
       }
       if (
-        id_docentes.some((id) => !devolucionExistente.id_docentes.includes(id))
+        idDocentes.some((id) => !devolucionExistente.id_docentes.includes(id))
       ) {
-        this.devolucionesAActualizar.push({
-          ...devolucionExistente,
-          id_docentes: id_docentes,
-        });
+        this.actualizarDevolucion(devolucionExistente, idDocentes);
+        continue;
       }
     }
+  }
+
+  private crearDevolucion(
+    asignacion: Asignacion,
+    ejercicio: Identificable<Ejercicio>,
+    idDocentes: string[],
+  ) {
+    this.devolucionesACrear.push({
+      nombre: asignacion.nombre,
+      id_ejercicio: ejercicio.id,
+      id_docentes: idDocentes,
+    });
+  }
+
+  private actualizarDevolucion(
+    devolucionExistente: Identificable<Devolucion>,
+    idDocentes: string[],
+  ) {
+    this.devolucionesAActualizar.push({
+      ...devolucionExistente,
+      id_docentes: idDocentes,
+    });
   }
 
   private crearNotificaciones() {
@@ -80,11 +96,13 @@ export class Asignador {
       this.devolucionesAActualizar,
     );
     for (const devolucion of nuevasAsignaciones) {
-      const docente = this.docentes.find((docente) =>
-        devolucion.id_docentes.includes(docente.id),
-      )!;
-      const asignadasDocente = asignacionesPorDocente.get(docente) || [];
-      asignacionesPorDocente.set(docente, [...asignadasDocente, devolucion]);
+      for (const idDocente of devolucion.id_docentes) {
+        const docente = this.docentes.find(
+          (docente) => docente.id === idDocente,
+        )!;
+        const asignadasDocente = asignacionesPorDocente.get(docente) || [];
+        asignacionesPorDocente.set(docente, [...asignadasDocente, devolucion]);
+      }
     }
 
     for (const [docente, asignaciones] of asignacionesPorDocente) {
