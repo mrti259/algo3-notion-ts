@@ -244,9 +244,9 @@ export class Asignador {
     contexto: Contexto,
     asignaciones: Asignacion[],
   ) {
-    const docentes = flat(asignaciones.map((a) => a.docentes));
+    const nombres = flat(asignaciones.map((a) => a.docentes));
     return await contexto.docentes.query({
-      nombre: docentes,
+      nombre: nombres,
     });
   }
 

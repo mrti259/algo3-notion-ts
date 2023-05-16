@@ -213,5 +213,5 @@ function _postData(url, data) {
 }
 
 function _separarNombres(nombres) {
-  return nombres.split(",").map((nombre) => nombre.trim());
+  return nombres?.split(",").map((nombre) => nombre.trim()) || [];
 }
