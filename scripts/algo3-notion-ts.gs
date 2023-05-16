@@ -157,15 +157,11 @@ function _generarDatosParaAsignarEjercicio(
   }
 }
 
-function _generarDatosParaAsignarExamen(
-  range_name,
-  exam_name,
-  teachers_column,
-) {
+function _generarDatosParaAsignarExamen(celdas, nombreExamen, columnaDocentes) {
   try {
     const valores = Sheets.Spreadsheets.Values.get(
       spreadsheet_id,
-      range_name,
+      celdas,
     ).values;
     if (!valores) {
       return null;
@@ -173,8 +169,8 @@ function _generarDatosParaAsignarExamen(
 
     const asignaciones = valores.map((filas) => ({
       nombre: `${filas[0]} - ${filas[1]}`,
-      docentes: _separarNombres(filas[teachers_column]),
-      ejercicio: exam_name,
+      docentes: _separarNombres(filas[columnaDocentes]),
+      ejercicio: nombreExamen,
     }));
     const { notion, slack } = notion_script_config;
     const { config_ejercicio, config_examen, ...config_notion } = notion;
