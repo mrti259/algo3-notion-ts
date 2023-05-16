@@ -1,22 +1,24 @@
 /**
  * Autor: Borja Garibotti
  * Descripcion:
- * - Crea en Notion las devoluciones segun grupo/estudiante - corrector para el ejercicio/examen seleccionado.
+ * - Crea en Notion las páginas para las devoluciones segun grupo/estudiante - corrector(es) según el ejercicio/examen seleccionado.
+ * Repo: https://github.com/mrti259/algo3-notion-ts
  */
+
 const spreadsheet_id = SpreadsheetApp.getActiveSpreadsheet().getId();
 const notion_script_config = {
   app_url: "",
-  exams: {
+  examenes: {
     endpoint: "api/asignarExamen",
-    range_name: "Correctores!B85:F169", // actualizar cada cuatri
+    celdas: "Correctores!B85:F169", // actualizar cada cuatri
   },
   recu_1: {
     endpoint: "api/asignarExamen",
-    range_name: "Correctores!B202:E242", // actualizar cada cuatri
+    celdas: "Correctores!B202:E242", // actualizar cada cuatri
   },
-  exercises: {
+  ejercicios: {
     endpoint: "api/asignarEjercicio",
-    range_name: "Correctores!A2:H44", // actualizar cada cuatri
+    celdas: "Correctores!A2:H44", // actualizar cada cuatri
   },
   slack: {
     token: "",
@@ -25,52 +27,60 @@ const notion_script_config = {
   notion: {
     token: "", // actualizar cada cuatri
     db_docente: "", // actualizar cada cuatri
-    exam_config: {
+    config_examen: {
       db_ejercicio: "", // actualizar cada cuatri
       db_devolucion: "", // actualizar cada cuatri
     },
-    exercise_config: {
-      db_ejercicio: "", // actualizar cada cuatri
+    config_ejercicio: {
+      db_ejercicio: "", // actualizar cada cuatrr
       db_devolucion: "", // actualizar cada cuatri
     },
   },
 };
 
-function asignExercise(exercise_name, exercise_column) {
-  const { range_name, endpoint } = notion_script_config.exercises;
-  const data = _getExerciseData(range_name, exercise_name, exercise_column);
-  return _asign(data, exercise_name, endpoint);
+function completarNombresDeSlack() {
+  const mensaje = `Se van a cargar los nombres de slack de los correctores. Continuar?`;
+  const url = notion_script_config.app_url + "api/completarNombresDeSlack";
+  const datos = _generarDatosParaCompletarNombresDeSlack();
+  _confirmarYEnviar(datos, url, mensaje);
 }
 
-function asignExam(exam_name, exam_column) {
-  const { range_name, endpoint } = notion_script_config.exams;
-  const data = _getExamData(range_name, exam_name, exam_column);
-  return _asign(data, exam_name, endpoint);
+function asignarEjercicio(nombre, columna) {
+  const { celdas, endpoint } = notion_script_config.ejercicios;
+  const datos = _generarDatosParaAsignarEjercicio(celdas, nombre, columna);
+  return _asignar(datos, nombre, endpoint);
 }
 
-function asignRecu1() {
-  const { range_name, endpoint } = notion_script_config.recu_1;
-  const exam_name = "Recuperatorio 1";
-  const data = _getExamData(range_name, exam_name, 3);
-  return _asign(data, exam_name, endpoint);
+function asignarExamen(nombre, columna) {
+  const { celdas, endpoint } = notion_script_config.examenes;
+  const datos = _generarDatosParaAsignarExamen(celdas, nombre, columna);
+  return _asignar(datos, nombre, endpoint);
 }
 
-function _asign(data, name, endpoint) {
-  if (!data) {
+function asignarRecu1() {
+  const { celdas, endpoint } = notion_script_config.recu_1;
+  const nombre = "Recuperatorio 1";
+  const datos = _generarDatosParaAsignarExamen(celdas, nombre, 3);
+  return _asignar(datos, nombre, endpoint);
+}
+
+function _asignar(datos, ejercicio, endpoint) {
+  const mensaje = `Se van a cargar los correctores de ${ejercicio}. Continuar?`;
+  const url = notion_script_config.app_url + endpoint;
+  _confirmarYEnviar(datos, url, mensaje);
+}
+
+function _confirmarYEnviar(datos, url, mensaje) {
+  if (!datos) {
     Logger.log("No data found");
     return;
   }
 
   var ui = SpreadsheetApp.getUi();
-  var response = ui.alert(
-    `Se van a cargar los correctores de ${name}. Continuar?`,
-    ui.ButtonSet.YES_NO,
-  );
+  var response = ui.alert(mensaje, ui.ButtonSet.YES_NO);
 
-  // Process the user's response.
   if (response == ui.Button.YES) {
-    const url = notion_script_config.app_url + endpoint;
-    _postData(url, data);
+    _postData(url, datos);
   } else {
     Logger.log(
       'The user clicked "No" or the close button in the dialog\'s title bar.',
@@ -78,77 +88,113 @@ function _asign(data, name, endpoint) {
   }
 }
 
-function _getExerciseData(range_name, exercise_name, teachers_column) {
+function _generarDatosParaCompletarNombresDeSlack() {
   try {
-    const values = Sheets.Spreadsheets.Values.get(
+    const celdas = notion_script_config.ejercicios.celdas;
+    const valores = Sheets.Spreadsheets.Values.get(
       spreadsheet_id,
-      range_name,
+      celdas,
     ).values;
-    if (!values) {
+    if (!valores) {
       return null;
     }
 
-    const asignaciones = values.map((row) => ({
-      nombre: `Grupo ${row[0]}`,
-      docentes: _splitNames(row[teachers_column]),
-      ejercicio: exercise_name,
-    }));
+    const docentes = new Set();
+    valores.forEach((filas) =>
+      filas.forEach((celda) =>
+        _separarNombres(celda).forEach((nombre) => docentes.add(nombre)),
+      ),
+    );
+
     const { notion, slack } = notion_script_config;
-    const { exercise_config, exam_config, ...notion_config } = notion;
+    const { config_ejercicio, config_examen, ...config_notion } = notion;
     const config = {
       notion: {
-        ...notion_config,
-        ...exercise_config,
+        ...config_notion,
+        ...config_ejercicio,
       },
       slack,
     };
 
-    return { config, asignaciones };
+    return { config, docentes: [...docentes] };
   } catch (err) {
-    // TODO (developer) - Handle Values.get() exception from Sheet API
     return null;
   }
 }
 
-function _getExamData(range_name, exam_name, teachers_column) {
+function _generarDatosParaAsignarEjercicio(
+  celdas,
+  nombreEjercicio,
+  columnaDocente,
+) {
   try {
-    const values = Sheets.Spreadsheets.Values.get(
+    const valores = Sheets.Spreadsheets.Values.get(
       spreadsheet_id,
-      range_name,
+      celdas,
     ).values;
-    if (!values) {
+    if (!valores) {
       return null;
     }
 
-    const asignaciones = values.map((row) => ({
-      nombre: `${row[0]} - ${row[1]}`,
-      docentes: _splitNames(row[teachers_column]),
-      ejercicio: exam_name,
+    const asignaciones = valores.map((filas) => ({
+      nombre: `Grupo ${filas[0]}`,
+      docentes: _separarNombres(filas[columnaDocente]),
+      ejercicio: nombreEjercicio,
     }));
     const { notion, slack } = notion_script_config;
-    const { exercise_config, exam_config, ...notion_config } = notion;
+    const { config_ejercicio, config_examen, ...config_notion } = notion;
     const config = {
       notion: {
-        ...notion_config,
-        ...exam_config,
+        ...config_notion,
+        ...config_ejercicio,
       },
       slack,
     };
 
     return { config, asignaciones };
   } catch (err) {
-    // TODO (developer) - Handle Values.get() exception from Sheet API
+    return null;
+  }
+}
+
+function _generarDatosParaAsignarExamen(celdas, nombreExamen, columnaDocentes) {
+  try {
+    const valores = Sheets.Spreadsheets.Values.get(
+      spreadsheet_id,
+      celdas,
+    ).values;
+    if (!valores) {
+      return null;
+    }
+
+    const asignaciones = valores.map((filas) => ({
+      nombre: `${filas[0]} - ${filas[1]}`,
+      docentes: _separarNombres(filas[columnaDocentes]),
+      ejercicio: nombreExamen,
+    }));
+    const { notion, slack } = notion_script_config;
+    const { config_ejercicio, config_examen, ...config_notion } = notion;
+    const config = {
+      notion: {
+        ...config_notion,
+        ...config_examen,
+      },
+      slack,
+    };
+
+    return { config, asignaciones };
+  } catch (err) {
     return null;
   }
 }
 
 function _postData(url, data) {
-  const options = {
+  const opciones = {
     method: "post",
     contentType: "application/json",
     payload: JSON.stringify(data),
   };
-  const response = UrlFetchApp.fetch(url, options);
+  const response = UrlFetchApp.fetch(url, opciones);
   const content = response.getContentText();
   Logger.log(
     JSON.stringify(
@@ -162,6 +208,6 @@ function _postData(url, data) {
   );
 }
 
-function _splitNames(names) {
-  return names.split(",").map((name) => name.trim());
+function _separarNombres(nombres) {
+  return nombres?.split(",").map((nombre) => nombre.trim()) || [];
 }

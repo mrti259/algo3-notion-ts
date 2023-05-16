@@ -13,6 +13,7 @@ export type Ejercicio = {
 
 export type Docente = {
   nombre: string;
+  nombreSlack: string;
 };
 
 export type Devolucion = {
@@ -22,7 +23,7 @@ export type Devolucion = {
 };
 
 export type Notificacion = {
-  destinatario: string;
+  nombreSlack: string;
   mensaje: string;
 };
 

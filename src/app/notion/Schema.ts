@@ -7,7 +7,7 @@ import {
   Properties,
   SearchParams,
 } from "./Database";
-import { Property } from "./Property";
+import { Property } from "./properties/Property";
 
 type SchemaProperties<T> = {
   [key in keyof T]: Property<T[key]>;

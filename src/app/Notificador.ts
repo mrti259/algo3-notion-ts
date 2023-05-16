@@ -10,33 +10,49 @@ export class Notificador {
     this.slack = new WebClient(token);
   }
 
+  async buscar(nombresBuscados: string[]): Promise<Array<string>> {
+    const miembros = await this.traerMiembros();
+
+    const nombresEncontrados: string[] = [];
+    for (const nombre of nombresBuscados) {
+      const miembro = this.encontrarMiembro(miembros, nombre);
+      if (!miembro) continue;
+      nombresEncontrados.push(nombre);
+    }
+
+    return nombresEncontrados;
+  }
+
+  private async traerMiembros() {
+    return (await this.slack.users.list().then((res) => res.members)) || [];
+  }
+
+  private encontrarMiembro(miembros: Member[], nombre: string) {
+    return miembros.find(
+      (miembro) => miembro.name === nombre || miembro.real_name === nombre,
+    );
+  }
+
   async enviar(notificaciones: Notificacion[]) {
-    const usuarios = await this.slack.users.list().then((res) => res.members);
-    if (!usuarios) return;
+    const miembros = await this.traerMiembros();
     await Promise.allSettled(
       notificaciones.map((notificacion) =>
-        this.enviarNotificacionEntreUsuarios(notificacion, usuarios),
+        this.enviarNotificacionEntreUsuarios(notificacion, miembros),
       ),
     );
   }
 
   private async enviarNotificacionEntreUsuarios(
     notificacion: Notificacion,
-    usuarios: Member[],
+    miembros: Member[],
   ) {
-    const { destinatario, mensaje } = notificacion;
-    const usuario = usuarios.find(
-      (usu) =>
-        usu.name === destinatario ||
-        usu.real_name === destinatario ||
-        usu.profile?.real_name === destinatario ||
-        usu.profile?.display_name === destinatario,
-    );
-    if (usuario && usuario.id) {
-      await this.enviarMensajesACanal(usuario.id, mensaje);
+    const { nombreSlack, mensaje } = notificacion;
+    const miembro = this.encontrarMiembro(miembros, nombreSlack);
+    if (miembro && miembro.id) {
+      await this.enviarMensajesACanal(miembro.id, mensaje);
       return;
     }
-    const mensajeDeCanal = `${destinatario}: ${mensaje}`;
+    const mensajeDeCanal = `${nombreSlack}: ${mensaje}`;
     await this.enviarMensajesACanal(this.default_channel, mensajeDeCanal);
   }
 
