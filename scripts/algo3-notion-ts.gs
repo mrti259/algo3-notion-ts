@@ -39,7 +39,7 @@ const notion_script_config = {
 };
 
 function completarNombresDeSlack() {
-  const mensaje = `Se van a cargar los correctores de ${ejercicio}. Continuar?`;
+  const mensaje = `Se van a cargar los nombres de slack de los correctores. Continuar?`;
   const url = notion_script_config.app_url + "api/completarNombresDeSlack";
   const datos = _generarDatosParaCompletarNombresDeSlack();
   _confirmarYEnviar(datos, url, mensaje);
