@@ -32,7 +32,22 @@ export class Asignador {
     private contexto: Contexto,
   ) {}
 
-  async asignar() {
+  async completarNombresDeSlack() {
+    const docentesAActualizar: Array<Identificable<Docente>> = [];
+    const nombresDocentes = this.docentes.map((docente) => docente.nombre);
+    const nombresEncontrados = await this.contexto.notificaciones.buscar(
+      nombresDocentes,
+    );
+    for (const docente of this.docentes) {
+      if (!nombresEncontrados.includes(docente.nombre)) continue;
+      docente.nombreSlack = docente.nombre;
+      docentesAActualizar.push(docente);
+    }
+    await this.contexto.docentes.update(docentesAActualizar);
+    return true;
+  }
+
+  async asignarCorrecciones() {
     this.agruparDevoluciones();
     this.crearNotificaciones();
     await this.enviar();
@@ -111,7 +126,7 @@ export class Asignador {
       const s = singular ? "" : "s";
       const ones = singular ? "ón" : "ones";
       this.notificaciones.push({
-        destinatario: docente.nombre,
+        nombreSlack: docente.nombreSlack,
         mensaje: `Se te ha${n} asignado ${
           asignaciones.length
         } correcci${ones} nueva${s}: ${asignaciones
@@ -127,6 +142,16 @@ export class Asignador {
       this.contexto.devoluciones.update(this.devolucionesAActualizar),
       this.contexto.notificaciones.enviar(this.notificaciones),
     ]);
+  }
+
+  static async completarNombresDeSlack(
+    config: Config,
+    nombresDocentes: string[],
+  ) {
+    const contexto = this.contextoParaEjercicios(config);
+    const docentes = await contexto.docentes.query({ nombre: nombresDocentes });
+    const asignador = new this([], [], docentes, [], contexto);
+    return await asignador.completarNombresDeSlack();
   }
 
   static async asignarEjercicio(config: Config, asignaciones: Asignacion[]) {
@@ -155,7 +180,7 @@ export class Asignador {
       devoluciones,
       contexto,
     );
-    return await asignador.asignar();
+    return await asignador.asignarCorrecciones();
   }
 
   private static contextoParaEjercicios(config: Config) {

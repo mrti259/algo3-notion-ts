@@ -1,9 +1,8 @@
-import {
-  RelationWithManyProperty,
-  RelationWithOneProperty,
-  TitleProperty,
-} from "./notion/Property";
 import { Schema } from "./notion/Schema";
+import { RelationWithManyProperty } from "./notion/properties/RelationWithManyProperty";
+import { RelationWithOneProperty } from "./notion/properties/RelationWithOneProperty";
+import { RichTextProperty } from "./notion/properties/RichTextProperty";
+import { TitleProperty } from "./notion/properties/TitleProperty";
 import { Devolucion, Docente, Ejercicio } from "./types";
 
 export const ejercicioSchema = new Schema<Ejercicio>({
@@ -12,6 +11,7 @@ export const ejercicioSchema = new Schema<Ejercicio>({
 
 export const docenteSchema = new Schema<Docente>({
   nombre: new TitleProperty("Nombre"),
+  nombreSlack: new RichTextProperty("Slack"),
 });
 
 export const devolucionEjercicioSchema = new Schema<Devolucion>({
