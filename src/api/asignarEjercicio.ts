@@ -1,6 +1,6 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 
-import { asignarEjercicio } from "../app";
+import { asignarEjercicio } from "../app/controllers/asignarEjercicio";
 
 export default async function (req: VercelRequest, res: VercelResponse) {
   const { body } = req;

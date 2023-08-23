@@ -4,7 +4,7 @@
   "description": "Algo3's Notion integration written in TypeScript",
   "main": "index.js",
   "scripts": {
-    "test": "ts-node test/index.ts",
+    "test": "ts-node tests/index.ts",
     "start": "ts-node src/index.ts",
     "clean": "rm -rf ./dist",
     "build": "npm run clean && tsc -b tsconfig.build.json",
@@ -27,6 +27,7 @@
   "dependencies": {
     "@notionhq/client": "^2.2.1",
     "@slack/web-api": "^6.7.2",
+    "axios": "^1.4.0",
     "dotenv": "^16.0.3",
     "express": "^4.18.2"
   }

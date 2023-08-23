@@ -1,9 +1,9 @@
 import { VercelRequest, VercelResponse } from "@vercel/node";
 
-import { completarNombresDeSlack } from "../app";
+import { obtenerContenido } from "../app/controllers/obtenerContenido";
 
 export default async function (req: VercelRequest, res: VercelResponse) {
-  const { body } = req;
-  const ok = await completarNombresDeSlack(body);
+  const { query } = req;
+  const ok = await obtenerContenido(query);
   return res.send({ ok });
 }
