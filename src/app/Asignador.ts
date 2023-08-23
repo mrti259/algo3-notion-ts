@@ -35,11 +35,12 @@ export class Asignador {
   async completarNombresDeSlack() {
     const docentesAActualizar: Array<Identificable<Docente>> = [];
     const nombresDocentes = this.docentes.map((docente) => docente.nombre);
-    const nombresEncontrados = await this.contexto.notificaciones.buscar(
+    const nombresEncontradosEnSlack = await this.contexto.notificaciones.buscar(
       nombresDocentes,
     );
     for (const docente of this.docentes) {
-      if (!nombresEncontrados.includes(docente.nombre)) continue;
+      if (!nombresEncontradosEnSlack.includes(docente.nombre)) continue;
+      if (docente.nombreSlack === docente.nombre) continue;
       docente.nombreSlack = docente.nombre;
       docentesAActualizar.push(docente);
     }
@@ -152,6 +153,47 @@ export class Asignador {
     const docentes = await contexto.docentes.query({ nombre: nombresDocentes });
     const asignador = new this([], [], docentes, [], contexto);
     return await asignador.completarNombresDeSlack();
+  }
+
+  static async obtenerIdsDevolucionesEjercicio(config: Config, nombre: string) {
+    return await this.obtenerIdsDevoluciones(
+      config,
+      nombre,
+      this.devolucionesEjercicio,
+    );
+  }
+
+  static async obtenerIdsDevolucionesExamen(config: Config, nombre: string) {
+    return await this.obtenerIdsDevoluciones(
+      config,
+      nombre,
+      this.devolucionesExamen,
+    );
+  }
+
+  private static async obtenerIdsDevoluciones(
+    config: Config,
+    nombreEjercicio: string,
+    devolucionesDb: (client: Client, config: Config) => Database<Devolucion>,
+  ) {
+    const client = new Client({ auth: config.notion.token });
+    const ejerciciosEncontrados = await this.ejercicios(client, config).query({
+      nombre: [nombreEjercicio],
+    });
+    const ejercicioBuscado = ejerciciosEncontrados[0];
+    if (!ejercicioBuscado) {
+      return { ok: false, devoluciones: [] };
+    }
+    const devolucionesEncontradas = await devolucionesDb(client, config).query({
+      id_ejercicio: [ejercicioBuscado.id],
+    });
+    return {
+      ok: true,
+      devoluciones: devolucionesEncontradas.map(({ id, nombre }) => ({
+        id,
+        nombre,
+      })),
+    };
   }
 
   static async asignarEjercicio(config: Config, asignaciones: Asignacion[]) {
