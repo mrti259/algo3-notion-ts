@@ -1,4 +1,3 @@
-import { Notificador } from "./Notificador";
 import { Database } from "./notion/Database";
 
 export type Asignacion = {
@@ -13,18 +12,12 @@ export type Ejercicio = {
 
 export type Docente = {
   nombre: string;
-  nombreSlack: string;
 };
 
 export type Devolucion = {
   nombre: string;
   id_docentes: Array<string>;
   id_ejercicio: string;
-};
-
-export type Notificacion = {
-  nombreSlack: string;
-  mensaje: string;
 };
 
 export type Config = {
@@ -34,15 +27,10 @@ export type Config = {
     db_ejercicio: string;
     db_devolucion: string;
   };
-  slack: {
-    token: string;
-    default_channel: string;
-  };
 };
 
 export type Contexto = {
   ejercicios: Database<Ejercicio>;
   docentes: Database<Docente>;
   devoluciones: Database<Devolucion>;
-  notificaciones: Notificador;
 };

@@ -20,10 +20,6 @@ const notion_script_config = {
     endpoint: "api/asignarEjercicio",
     celdas: "Correctores!A2:H44", // actualizar cada cuatri
   },
-  slack: {
-    token: "",
-    default_channel: "",
-  },
   notion: {
     token: "", // actualizar cada cuatri
     db_docente: "", // actualizar cada cuatri
@@ -37,13 +33,6 @@ const notion_script_config = {
     },
   },
 };
-
-function completarNombresDeSlack() {
-  const mensaje = `Se van a cargar los nombres de slack de los correctores. Continuar?`;
-  const url = notion_script_config.app_url + "api/completarNombresDeSlack";
-  const datos = _generarDatosParaCompletarNombresDeSlack();
-  _confirmarYEnviar(datos, url, mensaje);
-}
 
 function asignarEjercicio(nombre, columna) {
   const { celdas, endpoint } = notion_script_config.ejercicios;

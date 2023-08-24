@@ -1,6 +1,5 @@
 import { Client } from "@notionhq/client";
 
-import { Notificador } from "./Notificador";
 import { flat } from "./helpers/flat";
 import { Database, Identificable } from "./notion/Database";
 import {
@@ -16,13 +15,11 @@ import {
   Devolucion,
   Docente,
   Ejercicio,
-  Notificacion,
 } from "./types";
 
 export class Asignador {
   private devolucionesACrear: Array<Devolucion> = [];
   private devolucionesAActualizar: Array<Identificable<Devolucion>> = [];
-  private notificaciones: Array<Notificacion> = [];
 
   constructor(
     private asignaciones: Array<Asignacion>,
@@ -32,25 +29,8 @@ export class Asignador {
     private contexto: Contexto,
   ) {}
 
-  async completarNombresDeSlack() {
-    const docentesAActualizar: Array<Identificable<Docente>> = [];
-    const nombresDocentes = this.docentes.map((docente) => docente.nombre);
-    const nombresEncontradosEnSlack = await this.contexto.notificaciones.buscar(
-      nombresDocentes,
-    );
-    for (const docente of this.docentes) {
-      if (!nombresEncontradosEnSlack.includes(docente.nombre)) continue;
-      if (docente.nombreSlack === docente.nombre) continue;
-      docente.nombreSlack = docente.nombre;
-      docentesAActualizar.push(docente);
-    }
-    await this.contexto.docentes.update(docentesAActualizar);
-    return true;
-  }
-
   async asignarCorrecciones() {
     this.agruparDevoluciones();
-    this.crearNotificaciones();
     await this.enviar();
     return true;
   }
@@ -106,94 +86,11 @@ export class Asignador {
     });
   }
 
-  private crearNotificaciones() {
-    const asignacionesPorDocente = new Map<Docente, Array<Devolucion>>();
-    const nuevasAsignaciones = this.devolucionesACrear.concat(
-      this.devolucionesAActualizar,
-    );
-    for (const devolucion of nuevasAsignaciones) {
-      for (const idDocente of devolucion.id_docentes) {
-        const docente = this.docentes.find(
-          (docente) => docente.id === idDocente,
-        )!;
-        const asignadasDocente = asignacionesPorDocente.get(docente) || [];
-        asignacionesPorDocente.set(docente, [...asignadasDocente, devolucion]);
-      }
-    }
-
-    for (const [docente, asignaciones] of asignacionesPorDocente) {
-      const singular = asignaciones.length === 1;
-      const n = singular ? "" : "n";
-      const s = singular ? "" : "s";
-      const ones = singular ? "ón" : "ones";
-      this.notificaciones.push({
-        nombreSlack: docente.nombreSlack,
-        mensaje: `Se te ha${n} asignado ${
-          asignaciones.length
-        } correcci${ones} nueva${s}: ${asignaciones
-          .map((dev) => dev.nombre)
-          .join(", ")}`,
-      });
-    }
-  }
-
   private async enviar() {
     await Promise.allSettled([
       this.contexto.devoluciones.create(this.devolucionesACrear),
       this.contexto.devoluciones.update(this.devolucionesAActualizar),
-      this.contexto.notificaciones.enviar(this.notificaciones),
     ]);
-  }
-
-  static async completarNombresDeSlack(
-    config: Config,
-    nombresDocentes: string[],
-  ) {
-    const contexto = this.contextoParaEjercicios(config);
-    const docentes = await contexto.docentes.query({ nombre: nombresDocentes });
-    const asignador = new this([], [], docentes, [], contexto);
-    return await asignador.completarNombresDeSlack();
-  }
-
-  static async obtenerIdsDevolucionesEjercicio(config: Config, nombre: string) {
-    return await this.obtenerIdsDevoluciones(
-      config,
-      nombre,
-      this.devolucionesEjercicio,
-    );
-  }
-
-  static async obtenerIdsDevolucionesExamen(config: Config, nombre: string) {
-    return await this.obtenerIdsDevoluciones(
-      config,
-      nombre,
-      this.devolucionesExamen,
-    );
-  }
-
-  private static async obtenerIdsDevoluciones(
-    config: Config,
-    nombreEjercicio: string,
-    devolucionesDb: (client: Client, config: Config) => Database<Devolucion>,
-  ) {
-    const client = new Client({ auth: config.notion.token });
-    const ejerciciosEncontrados = await this.ejercicios(client, config).query({
-      nombre: [nombreEjercicio],
-    });
-    const ejercicioBuscado = ejerciciosEncontrados[0];
-    if (!ejercicioBuscado) {
-      return { ok: false, devoluciones: [] };
-    }
-    const devolucionesEncontradas = await devolucionesDb(client, config).query({
-      id_ejercicio: [ejercicioBuscado.id],
-    });
-    return {
-      ok: true,
-      devoluciones: devolucionesEncontradas.map(({ id, nombre }) => ({
-        id,
-        nombre,
-      })),
-    };
   }
 
   static async asignarEjercicio(config: Config, asignaciones: Asignacion[]) {
@@ -231,7 +128,6 @@ export class Asignador {
       ejercicios: this.ejercicios(client, config),
       docentes: this.docentes(client, config),
       devoluciones: this.devolucionesEjercicio(client, config),
-      notificaciones: this.notificador(config),
     };
   }
 
@@ -241,7 +137,6 @@ export class Asignador {
       ejercicios: this.ejercicios(client, config),
       docentes: this.docentes(client, config),
       devoluciones: this.devolucionesExamen(client, config),
-      notificaciones: this.notificador(config),
     };
   }
 
@@ -267,10 +162,6 @@ export class Asignador {
       config.notion.db_devolucion,
       devolucionExamenSchema,
     );
-  }
-
-  private static notificador(config: Config) {
-    return new Notificador(config.slack.token, config.slack.default_channel);
   }
 
   private static async traerEjercicios(
