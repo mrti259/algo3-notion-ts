@@ -1,6 +1,8 @@
 import { Client } from "@notionhq/client";
 import { BlockObjectResponse } from "@notionhq/client/build/src/api-endpoints";
 
+import { RichTextProperty } from "../notion/properties/RichTextProperty";
+
 export async function obtenerContenido(
   query: Partial<{
     notion_token: string;
@@ -8,112 +10,80 @@ export async function obtenerContenido(
   }>,
 ) {
   const { notion_token, page_id } = query || {};
-  if (!notion_token || !page_id) return false;
+  if (!notion_token || !page_id) {
+    return "";
+  }
+
   const client = new Client({ auth: notion_token });
-  const response = await client.blocks.children.list({ block_id: page_id });
+  return await obtenerContenidoDeBloque(client, page_id);
+}
+
+async function obtenerContenidoDeBloque(client: Client, block_id: string) {
+  const response = await client.blocks.children.list({ block_id: block_id });
   const blocks = response.results as Array<BlockObjectResponse>;
-  for (const block of blocks) {
-    if (!block.type) continue;
-    switch (block.type) {
-      case "paragraph": {
-        break;
-      }
-      case "heading_1": {
-        break;
-      }
-      case "heading_2": {
-        break;
-      }
-      case "heading_3": {
-        break;
-      }
-      case "bulleted_list_item": {
-        break;
-      }
-      case "numbered_list_item": {
-        break;
-      }
-      case "quote": {
-        break;
-      }
-      case "to_do": {
-        break;
-      }
-      case "toggle": {
-        break;
-      }
-      case "template": {
-        break;
-      }
-      case "synced_block": {
-        break;
-      }
-      case "child_page": {
-        break;
-      }
-      case "child_database": {
-        break;
-      }
-      case "equation": {
-        break;
-      }
-      case "code": {
-        break;
-      }
-      case "callout": {
-        break;
-      }
-      case "divider": {
-        break;
-      }
-      case "breadcrumb": {
-        break;
-      }
-      case "table_of_contents": {
-        break;
-      }
-      case "column_list": {
-        break;
-      }
-      case "column": {
-        break;
-      }
-      case "link_to_page": {
-        break;
-      }
-      case "table": {
-        break;
-      }
-      case "table_row": {
-        break;
-      }
-      case "embed": {
-        break;
-      }
-      case "bookmark": {
-        break;
-      }
-      case "image": {
-        break;
-      }
-      case "video": {
-        break;
-      }
-      case "pdf": {
-        break;
-      }
-      case "file": {
-        break;
-      }
-      case "audio": {
-        break;
-      }
-      case "link_preview": {
-        break;
-      }
-      case "unsupported": {
-        break;
-      }
+  const content = await Promise.all(
+    blocks.map(async (block) =>
+      (await convertirAMarkdown(client, block)).trim(),
+    ),
+  );
+  return content.join("\n\n");
+}
+
+async function convertirAMarkdown(
+  client: Client,
+  block: BlockObjectResponse,
+): Promise<string> {
+  const textProperty = new RichTextProperty(block.type);
+  const textoBloque = obtenerTextoDeBloque(textProperty, block);
+  const contenidoBloque = block.has_children
+    ? await obtenerContenidoDeBloque(client, block.id)
+    : "";
+  const content = [textoBloque, contenidoBloque];
+
+  return content.join("");
+}
+function obtenerTextoDeBloque(
+  textProperty: RichTextProperty,
+  block: BlockObjectResponse,
+): string {
+  switch (block.type) {
+    case "paragraph": {
+      const texto = textProperty.mapPageProperty(block[block.type]);
+      return texto;
+    }
+    case "heading_1": {
+      const texto = textProperty.mapPageProperty(block[block.type]);
+      return `# ${texto}`;
+    }
+    case "heading_2": {
+      const texto = textProperty.mapPageProperty(block[block.type]);
+      return `## ${texto}`;
+    }
+    case "heading_3": {
+      const texto = textProperty.mapPageProperty(block[block.type]);
+      return `### ${texto}`;
+    }
+    case "bulleted_list_item": {
+      const texto = textProperty.mapPageProperty(block[block.type]);
+      return `- ${texto}`;
+    }
+    case "numbered_list_item": {
+      const texto = textProperty.mapPageProperty(block[block.type]);
+      return `1. ${texto}`;
+    }
+    case "quote": {
+      const texto = textProperty.mapPageProperty(block[block.type]);
+      return `> ${texto}`;
+    }
+    case "code": {
+      const texto = textProperty.mapPageProperty(block[block.type]);
+      return `> ${texto}`;
+    }
+    case "divider": {
+      return "---";
+    }
+    default: {
+      throw new Error(`Unsupported block: ${block.type}`);
     }
   }
 }
